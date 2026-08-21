@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { GameCard, type GameCardData } from "@/components/GameCard";
-import { faDate, faDuration, faNum, toFa } from "@/lib/fa";
+import { faAge, faDate, faDurationRange, faNum, toFa } from "@/lib/fa";
 
 export const Route = createFileRoute("/game/$gameId")({
   head: () => ({
