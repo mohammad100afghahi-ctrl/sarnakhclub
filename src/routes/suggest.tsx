@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PLATFORMS } from "@/lib/fa";
 
 export const Route = createFileRoute("/suggest")({
   head: () => ({
@@ -42,7 +40,6 @@ function SuggestPage() {
     source_url: "",
     poster_url: "",
   });
-  const [platforms, setPlatforms] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -75,7 +72,6 @@ function SuggestPage() {
       description: parsed.data.description,
       creator_studio: parsed.data.creator_studio ?? null,
       release_year: parsed.data.release_year ?? null,
-      platforms,
       source_url: form.source_url || null,
       poster_url: form.poster_url || null,
     });
@@ -86,7 +82,6 @@ function SuggestPage() {
     }
     toast.success("پیشنهاد شما ثبت شد و در انتظار بررسی ادمین است");
     setForm({ title: "", description: "", creator_studio: "", release_year: "", source_url: "", poster_url: "" });
-    setPlatforms([]);
   };
 
   return (
@@ -110,7 +105,7 @@ function SuggestPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>سازنده / استودیو</Label>
+            <Label>محصول گروه</Label>
             <Input value={form.creator_studio} onChange={(e) => set("creator_studio")(e.target.value)} />
           </div>
           <div className="space-y-2">
@@ -120,22 +115,6 @@ function SuggestPage() {
               value={form.release_year}
               onChange={(e) => set("release_year")(e.target.value.replace(/\D/g, ""))}
             />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>پلتفرم‌ها</Label>
-          <div className="flex flex-wrap gap-3">
-            {PLATFORMS.map((p) => (
-              <label key={p} className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={platforms.includes(p)}
-                  onCheckedChange={(c) =>
-                    setPlatforms((prev) => (c ? [...prev, p] : prev.filter((x) => x !== p)))
-                  }
-                />
-                {p}
-              </label>
-            ))}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
