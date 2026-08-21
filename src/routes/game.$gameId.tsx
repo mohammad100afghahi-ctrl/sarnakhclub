@@ -323,21 +323,39 @@ function GamePage() {
           </Tabs>
         </div>
 
-        <div className="space-y-3 rounded-xl surface-case p-4">
-          <Textarea
-            rows={3}
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            placeholder="نظر خود را درباره این پرونده بنویسید…"
-          />
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={spoiler} onCheckedChange={(c) => setSpoiler(!!c)} />
-              این نظر حاوی اسپویلر است
-            </label>
-            <Button onClick={submitReview}>ثبت نظر</Button>
+        {myReview && !editing ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4">
+            <p className="text-sm text-muted-foreground">شما برای این پرونده یک نظر ثبت کرده‌اید.</p>
+            <Button variant="outline" onClick={startEdit}>ویرایش نظر من</Button>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3 rounded-xl surface-case p-4">
+            <Textarea
+              rows={3}
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="نظر خود را درباره این پرونده بنویسید…"
+            />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={spoiler} onCheckedChange={(c) => setSpoiler(!!c)} />
+                این نظر حاوی اسپویلر است
+              </label>
+              <div className="flex gap-2">
+                {editing && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setEditing(false); setReviewText(""); setSpoiler(false); }}
+                  >
+                    انصراف
+                  </Button>
+                )}
+                <Button onClick={submitReview}>{editing ? "ذخیره ویرایش" : "ثبت نظر"}</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {(reviews ?? []).map((r) => {
           const hidden = r.is_spoiler && !revealed.includes(r.id);
