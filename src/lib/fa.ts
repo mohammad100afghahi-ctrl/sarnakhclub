@@ -2,7 +2,7 @@ const FA_DIGITS = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
 export function toFa(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "—";
-  return String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
+  return String(value).replace(/\d/g, (d) => FA_DIGITS[Number(d)] ?? d);
 }
 
 export function faNum(value: number | null | undefined, digits = 0): string {
