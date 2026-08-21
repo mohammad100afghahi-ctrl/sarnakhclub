@@ -133,7 +133,7 @@ function RootComponent() {
         </main>
         <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
           <p className="font-bold text-gradient-gold">سرنخ</p>
-          <p className="mt-1">مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن</p>
+          <p className="mt-1">{"\n"}</p>
         </footer>
       </div>
       <FeedbackWidget />
