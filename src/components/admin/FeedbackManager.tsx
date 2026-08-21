@@ -8,6 +8,7 @@ import { faDate } from "@/lib/fa";
 const KIND_LABEL: Record<string, string> = {
   bug: "باگ",
   suggestion: "پیشنهاد",
+  game_info: "اطلاعات نادرست پرونده",
   other: "سایر",
 };
 
@@ -79,6 +80,14 @@ export function FeedbackManager() {
             {r.contact && <span>تماس: {r.contact}</span>}
           </div>
           <p className="whitespace-pre-wrap text-sm">{r.message}</p>
+          {(() => {
+            const id = r.message.match(/\/game\/([0-9a-f-]{36})/)?.[1];
+            return id ? (
+              <a href={`/game/${id}`} className="text-xs text-primary hover:underline">
+                باز کردن پرونده برای اصلاح
+              </a>
+            ) : null;
+          })()}
           <div className="flex gap-2">
             {r.status === "open" ? (
               <Button size="sm" onClick={() => setStatus(r.id, "resolved")}>
