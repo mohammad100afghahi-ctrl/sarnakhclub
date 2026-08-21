@@ -233,9 +233,10 @@ function AdminPage() {
       <h1 className="text-2xl font-black">پنل مدیریت</h1>
 
       <Tabs value={tab} onValueChange={setTab} dir="rtl">
-        <TabsList className="w-full">
+        <TabsList className="flex w-full flex-wrap gap-1 h-auto">
           <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
+          <TabsTrigger value="importer" className="flex-1">استخراج هوشمند</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="feedback" className="flex-1">بازخوردها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
@@ -250,9 +251,14 @@ function AdminPage() {
           </TabsContent>
         )}
 
+        <TabsContent value="importer" className="pt-4">
+          <AiImporter />
+        </TabsContent>
+
         <TabsContent value="games" className="pt-4">
           <GamesManager draft={draft} setDraft={setDraft} userId={user.id} />
         </TabsContent>
+
 
         <TabsContent value="suggestions" className="space-y-2 pt-4">
           {(suggestions ?? []).map((s) => (
