@@ -59,9 +59,7 @@ export type Database = {
           id: string
           max_players: number | null
           min_players: number | null
-          platforms: string[]
           poster_url: string | null
-          release_year: number | null
           source_url: string | null
           status: string
           title: string
@@ -78,9 +76,7 @@ export type Database = {
           id?: string
           max_players?: number | null
           min_players?: number | null
-          platforms?: string[]
           poster_url?: string | null
-          release_year?: number | null
           source_url?: string | null
           status?: string
           title: string
@@ -97,9 +93,7 @@ export type Database = {
           id?: string
           max_players?: number | null
           min_players?: number | null
-          platforms?: string[]
           poster_url?: string | null
-          release_year?: number | null
           source_url?: string | null
           status?: string
           title?: string
@@ -157,13 +151,10 @@ export type Database = {
           duration_max_minutes: number | null
           duration_minutes: number | null
           featured: boolean
-          genres: string[]
           id: string
           max_players: number | null
           min_players: number | null
-          platforms: string[]
           poster_url: string | null
-          release_year: number | null
           status: string
           title: string
           views: number
@@ -177,13 +168,10 @@ export type Database = {
           duration_max_minutes?: number | null
           duration_minutes?: number | null
           featured?: boolean
-          genres?: string[]
           id?: string
           max_players?: number | null
           min_players?: number | null
-          platforms?: string[]
           poster_url?: string | null
-          release_year?: number | null
           status?: string
           title: string
           views?: number
@@ -197,13 +185,10 @@ export type Database = {
           duration_max_minutes?: number | null
           duration_minutes?: number | null
           featured?: boolean
-          genres?: string[]
           id?: string
           max_players?: number | null
           min_players?: number | null
-          platforms?: string[]
           poster_url?: string | null
-          release_year?: number | null
           status?: string
           title?: string
           views?: number
@@ -517,15 +502,12 @@ export type Database = {
           duration_max_minutes: number | null
           duration_minutes: number | null
           featured: boolean | null
-          genres: string[] | null
           id: string | null
           max_players: number | null
           min_players: number | null
           min_votes: number | null
-          platforms: string[] | null
           poster_url: string | null
           raw_avg: number | null
-          release_year: number | null
           status: string | null
           title: string | null
           views: number | null
