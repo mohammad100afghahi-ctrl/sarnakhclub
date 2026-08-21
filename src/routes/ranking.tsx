@@ -119,7 +119,7 @@ function RankingPage() {
               </Link>
             ))}
         {!isLoading && rows.length === 0 && (
-          <p className="p-8 text-center text-sm text-muted-foreground">پرونده‌ای با این فیلترها پیدا نشد.</p>
+          <p className="p-8 text-center text-sm text-muted-foreground">هنوز پرونده‌ای ثبت نشده است.</p>
         )}
       </div>
     </div>
