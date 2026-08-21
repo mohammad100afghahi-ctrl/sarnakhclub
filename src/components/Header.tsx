@@ -62,7 +62,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
-              <SheetTitle className="text-right text-gradient-gold">آرشیو پرونده</SheetTitle>
+              <SheetTitle className="text-right text-gradient-gold">سرنخ</SheetTitle>
               <nav className="mt-6 flex flex-col gap-1">
                 {navItems.map((i) => (
                   <Link
@@ -90,7 +90,7 @@ export function Header() {
 
           <Link to="/" className="flex shrink-0 items-center gap-2">
             <FileSearch className="h-6 w-6 text-primary" />
-            <span className="text-lg font-extrabold text-gradient-gold">آرشیو پرونده</span>
+            <span className="text-lg font-extrabold text-gradient-gold">سرنخ</span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">

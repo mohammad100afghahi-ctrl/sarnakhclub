@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * آرشیو پرونده — design system
+ * سرنخ — design system
  * Dark noir palette: near-black backgrounds, muted gold + brick red accents.
  * All colors are oklch semantic tokens. Never hardcode colors in components.
  */

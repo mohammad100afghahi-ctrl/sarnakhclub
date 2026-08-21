@@ -10,13 +10,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/ranking")({
   head: () => ({
     meta: [
-      { title: "رتبه‌بندی بازی‌های پرونده‌ای | آرشیو پرونده" },
+      { title: "رتبه‌بندی بازی‌های پرونده‌ای | سرنخ" },
       {
         name: "description",
         content:
           "جدول رتبه‌بندی بازی‌های معمایی و کارآگاهی بر پایه میانگین وزنی بیزی، با فیلتر سال انتشار و رده سنی.",
       },
-      { property: "og:title", content: "رتبه‌بندی بازی‌های پرونده‌ای | آرشیو پرونده" },
+      { property: "og:title", content: "رتبه‌بندی بازی‌های پرونده‌ای | سرنخ" },
       { property: "og:description", content: "برترین‌های همه‌دوران، برترین‌های امسال و پرطرفدارترین پرونده‌ها." },
     ],
   }),

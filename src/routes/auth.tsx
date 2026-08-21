@@ -12,9 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "ورود و ثبت‌نام | آرشیو پرونده" },
-      { name: "description", content: "برای ثبت امتیاز، نوشتن نظر و ساختن لیست علاقه‌مندی وارد آرشیو پرونده شوید." },
-      { property: "og:title", content: "ورود و ثبت‌نام | آرشیو پرونده" },
+      { title: "ورود و ثبت‌نام | سرنخ" },
+      { name: "description", content: "برای ثبت امتیاز، نوشتن نظر و ساختن لیست علاقه‌مندی وارد سرنخ شوید." },
+      { property: "og:title", content: "ورود و ثبت‌نام | سرنخ" },
       { property: "og:description", content: "ورود با ایمیل و رمز عبور یا حساب گوگل." },
     ],
   }),
@@ -75,7 +75,7 @@ function AuthPage() {
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
-      <h1 className="text-center text-2xl font-black">ورود به آرشیو پرونده</h1>
+      <h1 className="text-center text-2xl font-black">ورود به سرنخ</h1>
       <div className="rounded-2xl surface-case p-6">
         <Tabs defaultValue="in" dir="rtl">
           <TabsList className="w-full">

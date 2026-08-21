@@ -25,9 +25,9 @@ import { faAge, faDate, faDurationRange, faNum, toFa } from "@/lib/fa";
 export const Route = createFileRoute("/game/$gameId")({
   head: () => ({
     meta: [
-      { title: "پرونده بازی | آرشیو پرونده" },
+      { title: "پرونده بازی | سرنخ" },
       { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران و پرونده‌های مشابه." },
-      { property: "og:title", content: "پرونده بازی | آرشیو پرونده" },
+      { property: "og:title", content: "پرونده بازی | سرنخ" },
       { property: "og:description", content: "امتیاز میانگین، نقد کاربران و اطلاعات کامل بازی‌های معمایی." },
     ],
   }),

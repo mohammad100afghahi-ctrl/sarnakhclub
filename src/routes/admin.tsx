@@ -15,10 +15,10 @@ import { FeedbackManager } from "@/components/admin/FeedbackManager";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "پنل مدیریت | آرشیو پرونده" },
+      { title: "پنل مدیریت | سرنخ" },
       { name: "description", content: "مدیریت پیشنهادهای بازی، گزارش نظرها و تنظیمات رتبه‌بندی." },
-      { property: "og:title", content: "پنل مدیریت | آرشیو پرونده" },
-      { property: "og:description", content: "ابزارهای مدیریتی آرشیو پرونده." },
+      { property: "og:title", content: "پنل مدیریت | سرنخ" },
+      { property: "og:description", content: "ابزارهای مدیریتی سرنخ." },
       { name: "robots", content: "noindex" },
     ],
   }),
