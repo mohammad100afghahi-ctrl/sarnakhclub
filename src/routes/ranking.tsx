@@ -27,7 +27,6 @@ type Row = {
   id: string;
   title: string;
   poster_url: string | null;
-  release_year: number | null;
   age_rating: string | null;
   raw_avg: number;
   votes: number;
@@ -51,7 +50,7 @@ function RankingPage() {
     const list = [...(data ?? [])];
     if (tab === "votes") list.sort((a, b) => b.votes - a.votes);
     else list.sort((a, b) => Number(b.weighted_score) - Number(a.weighted_score));
-    return tab === "year" ? list.filter((r) => r.release_year === new Date().getFullYear()) : list;
+    return list;
   }, [data, tab]);
 
 
@@ -66,12 +65,9 @@ function RankingPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} dir="rtl">
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1">
           <TabsTrigger value="all" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
             برترین‌های همه‌دوران
-          </TabsTrigger>
-          <TabsTrigger value="year" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
-            برترین‌های امسال
           </TabsTrigger>
           <TabsTrigger value="votes" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
             پرطرفدارترین‌ها
@@ -112,9 +108,6 @@ function RankingPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">{r.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {toFa(r.release_year ?? "")}
-                  </p>
                   <p className="mt-1 text-xs text-muted-foreground sm:hidden">
                     وزنی {faNum(Number(r.weighted_score), 1)} · {faNum(r.votes)} رای
                   </p>

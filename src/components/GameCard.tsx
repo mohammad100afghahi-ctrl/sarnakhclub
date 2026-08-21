@@ -1,13 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
-import { faNum, toFa } from "@/lib/fa";
+import { faNum } from "@/lib/fa";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export type GameCardData = {
   id: string;
   title: string;
   poster_url: string | null;
-  release_year?: number | null;
   weighted_score?: number | string | null;
   votes?: number | null;
 };
@@ -39,9 +38,6 @@ export function GameCard({ game }: { game: GameCardData }) {
       </div>
       <div className="space-y-1 p-3">
         <h3 className="truncate text-sm font-bold sm:text-base">{game.title}</h3>
-        {game.release_year ? (
-          <p className="truncate text-xs text-muted-foreground">{toFa(game.release_year)}</p>
-        ) : null}
       </div>
     </Link>
   );
