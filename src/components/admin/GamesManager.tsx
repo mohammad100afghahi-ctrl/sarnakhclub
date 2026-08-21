@@ -16,8 +16,6 @@ export type GameDraft = {
   description: string;
   creator_studio: string;
   release_year: string;
-  platforms: string;
-  genres: string;
   min_players: string;
   max_players: string;
   age_rating: string;
@@ -32,8 +30,6 @@ export const emptyDraft: GameDraft = {
   description: "",
   creator_studio: "",
   release_year: "",
-  platforms: "",
-  genres: "",
   min_players: "",
   max_players: "",
   age_rating: "",
@@ -42,12 +38,6 @@ export const emptyDraft: GameDraft = {
   featured: false,
   status: "active",
 };
-
-const list = (v: string) =>
-  v
-    .split(/[،,]/)
-    .map((s) => s.trim())
-    .filter(Boolean);
 
 const num = (v: string) => (v.trim() === "" ? null : Number(v));
 
@@ -62,6 +52,32 @@ export function GamesManager({
 }) {
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadPoster = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم تصویر باید کمتر از ۵ مگابایت باشد");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("posters").upload(path, file, { contentType: file.type });
+    if (error) {
+      setUploading(false);
+      toast.error("آپلود تصویر ناموفق بود");
+      return;
+    }
+    const { data } = await supabase.storage.from("posters").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (!data?.signedUrl) {
+      toast.error("دریافت نشانی تصویر ناموفق بود");
+      return;
+    }
+    setDraft({ ...draft, poster_url: data.signedUrl });
+    toast.success("تصویر آپلود شد");
+  };
 
   const { data: games } = useQuery({
     queryKey: ["admin-games"],
@@ -91,8 +107,6 @@ export function GamesManager({
       description: draft.description.trim(),
       creator_studio: draft.creator_studio.trim() || null,
       release_year: num(draft.release_year),
-      platforms: list(draft.platforms),
-      genres: list(draft.genres),
       min_players: num(draft.min_players),
       max_players: num(draft.max_players),
       age_rating: draft.age_rating.trim() || null,
@@ -125,8 +139,6 @@ export function GamesManager({
       description: data.description ?? "",
       creator_studio: data.creator_studio ?? "",
       release_year: data.release_year ? String(data.release_year) : "",
-      platforms: (data.platforms ?? []).join("، "),
-      genres: (data.genres ?? []).join("، "),
       min_players: data.min_players ? String(data.min_players) : "",
       max_players: data.max_players ? String(data.max_players) : "",
       age_rating: data.age_rating ?? "",
@@ -167,7 +179,7 @@ export function GamesManager({
           <Field label="عنوان بازی *">
             <Input value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="مثلا: ۱۳ سرنخ" />
           </Field>
-          <Field label="سازنده / استودیو">
+          <Field label="محصول گروه">
             <Input value={draft.creator_studio} onChange={(e) => set("creator_studio", e.target.value)} />
           </Field>
           <Field label="سال انتشار">
@@ -175,12 +187,6 @@ export function GamesManager({
           </Field>
           <Field label="رده سنی">
             <Input value={draft.age_rating} onChange={(e) => set("age_rating", e.target.value)} placeholder="+۱۲" />
-          </Field>
-          <Field label="پلتفرم‌ها (با ویرگول جدا کنید)">
-            <Input value={draft.platforms} onChange={(e) => set("platforms", e.target.value)} placeholder="رومیزی، اندروید، PC" />
-          </Field>
-          <Field label="ژانرها (با ویرگول جدا کنید)">
-            <Input value={draft.genres} onChange={(e) => set("genres", e.target.value)} placeholder="کارآگاهی، معمایی" />
           </Field>
           <Field label="حداقل بازیکن">
             <Input value={draft.min_players} onChange={(e) => set("min_players", e.target.value)} inputMode="numeric" />
@@ -191,8 +197,17 @@ export function GamesManager({
           <Field label="مدت زمان (دقیقه)">
             <Input value={draft.duration_minutes} onChange={(e) => set("duration_minutes", e.target.value)} inputMode="numeric" />
           </Field>
-          <Field label="نشانی تصویر پوستر">
-            <Input value={draft.poster_url} onChange={(e) => set("poster_url", e.target.value)} placeholder="https://…" dir="ltr" />
+          <Field label="تصویر پوستر">
+            <div className="space-y-2">
+              <Input type="file" accept="image/*" disabled={uploading} onChange={(e) => uploadPoster(e.target.files?.[0])} />
+              {uploading && <p className="text-xs text-muted-foreground">در حال آپلود…</p>}
+              {draft.poster_url && (
+                <div className="flex items-center gap-3">
+                  <img src={draft.poster_url} alt="پیش‌نمایش پوستر" className="h-20 w-16 rounded-md object-cover" />
+                  <Button size="sm" variant="secondary" onClick={() => set("poster_url", "")}>حذف تصویر</Button>
+                </div>
+              )}
+            </div>
           </Field>
         </div>
 
