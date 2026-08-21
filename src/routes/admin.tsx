@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toFa } from "@/lib/fa";
+import { faDate, toFa } from "@/lib/fa";
 import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 
 export const Route = createFileRoute("/admin")({
@@ -29,6 +29,7 @@ function AdminPage() {
   const [mValue, setMValue] = useState("");
   const [tab, setTab] = useState("games");
   const [draft, setDraft] = useState<GameDraft>(emptyDraft);
+  const [reportFilter, setReportFilter] = useState<"open" | "resolved" | "dismissed" | "all">("open");
 
   const { data: suggestions } = useQuery({
     queryKey: ["admin-suggestions"],
