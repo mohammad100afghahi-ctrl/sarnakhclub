@@ -17,10 +17,14 @@ export type Database = {
       game_suggestions: {
         Row: {
           admin_note: string | null
+          age_rating: string | null
           created_at: string
           creator_studio: string | null
           description: string
+          duration_minutes: number | null
           id: string
+          max_players: number | null
+          min_players: number | null
           platforms: string[]
           poster_url: string | null
           release_year: number | null
@@ -31,10 +35,14 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
+          age_rating?: string | null
           created_at?: string
           creator_studio?: string | null
           description?: string
+          duration_minutes?: number | null
           id?: string
+          max_players?: number | null
+          min_players?: number | null
           platforms?: string[]
           poster_url?: string | null
           release_year?: number | null
@@ -45,10 +53,14 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
+          age_rating?: string | null
           created_at?: string
           creator_studio?: string | null
           description?: string
+          duration_minutes?: number | null
           id?: string
+          max_players?: number | null
+          min_players?: number | null
           platforms?: string[]
           poster_url?: string | null
           release_year?: number | null

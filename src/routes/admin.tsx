@@ -83,6 +83,10 @@ function AdminPage() {
     description: string | null;
     creator_studio: string | null;
     release_year: number | null;
+    min_players?: number | null;
+    max_players?: number | null;
+    age_rating?: string | null;
+    duration_minutes?: number | null;
     poster_url: string | null;
   }) => {
     setDraft({
@@ -91,8 +95,13 @@ function AdminPage() {
       description: s.description ?? "",
       creator_studio: s.creator_studio ?? "",
       release_year: s.release_year ? String(s.release_year) : "",
+      min_players: s.min_players ? String(s.min_players) : "",
+      max_players: s.max_players ? String(s.max_players) : "",
+      age_rating: s.age_rating ?? "",
+      duration_minutes: s.duration_minutes ? String(s.duration_minutes) : "",
       poster_url: s.poster_url ?? "",
     });
+
     setTab("games");
     toast.info("اطلاعات پیشنهاد در فرم پرونده بارگذاری شد");
   };

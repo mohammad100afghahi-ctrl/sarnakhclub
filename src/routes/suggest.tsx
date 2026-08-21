@@ -27,20 +27,29 @@ const schema = z.object({
   creator_studio: z.string().trim().max(120).optional(),
   release_year: z.number().int().min(1900).max(2100).optional(),
   source_url: z.string().trim().url({ message: "لینک معتبر نیست" }).max(500).optional().or(z.literal("")),
-  poster_url: z.string().trim().url({ message: "لینک تصویر معتبر نیست" }).max(500).optional().or(z.literal("")),
 });
+
+const emptyForm = {
+  title: "",
+  description: "",
+  creator_studio: "",
+  release_year: "",
+  min_players: "",
+  max_players: "",
+  age_rating: "",
+  duration_minutes: "",
+  source_url: "",
+  poster_url: "",
+};
+
+const num = (v: string) => (v.trim() === "" ? null : Number(v));
+const digits = (v: string) => v.replace(/[^\d]/g, "");
 
 function SuggestPage() {
   const { user } = useAuth();
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    creator_studio: "",
-    release_year: "",
-    source_url: "",
-    poster_url: "",
-  });
+  const [form, setForm] = useState(emptyForm);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -54,6 +63,31 @@ function SuggestPage() {
       </div>
     );
   }
+
+  const uploadPoster = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم تصویر باید کمتر از ۵ مگابایت باشد");
+      return;
+    }
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("posters").upload(path, file, { contentType: file.type });
+    if (error) {
+      setUploading(false);
+      toast.error("آپلود تصویر ناموفق بود");
+      return;
+    }
+    const { data } = await supabase.storage.from("posters").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    setUploading(false);
+    if (!data?.signedUrl) {
+      toast.error("دریافت نشانی تصویر ناموفق بود");
+      return;
+    }
+    setForm((f) => ({ ...f, poster_url: data.signedUrl }));
+    toast.success("تصویر آپلود شد");
+  };
 
   const submit = async () => {
     const parsed = schema.safeParse({
@@ -72,6 +106,10 @@ function SuggestPage() {
       description: parsed.data.description,
       creator_studio: parsed.data.creator_studio ?? null,
       release_year: parsed.data.release_year ?? null,
+      min_players: num(form.min_players),
+      max_players: num(form.max_players),
+      age_rating: form.age_rating.trim() || null,
+      duration_minutes: num(form.duration_minutes),
       source_url: form.source_url || null,
       poster_url: form.poster_url || null,
     });
@@ -81,7 +119,7 @@ function SuggestPage() {
       return;
     }
     toast.success("پیشنهاد شما ثبت شد و در انتظار بررسی ادمین است");
-    setForm({ title: "", description: "", creator_studio: "", release_year: "", source_url: "", poster_url: "" });
+    setForm(emptyForm);
   };
 
   return (
@@ -113,21 +151,65 @@ function SuggestPage() {
             <Input
               inputMode="numeric"
               value={form.release_year}
-              onChange={(e) => set("release_year")(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => set("release_year")(digits(e.target.value))}
             />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>لینک منبع</Label>
-            <Input dir="ltr" value={form.source_url} onChange={(e) => set("source_url")(e.target.value)} />
+            <Label>حداقل بازیکن</Label>
+            <Input
+              inputMode="numeric"
+              value={form.min_players}
+              onChange={(e) => set("min_players")(digits(e.target.value))}
+            />
           </div>
           <div className="space-y-2">
-            <Label>لینک تصویر پوستر</Label>
-            <Input dir="ltr" value={form.poster_url} onChange={(e) => set("poster_url")(e.target.value)} />
+            <Label>حداکثر بازیکن</Label>
+            <Input
+              inputMode="numeric"
+              value={form.max_players}
+              onChange={(e) => set("max_players")(digits(e.target.value))}
+            />
           </div>
         </div>
-        <Button className="w-full font-bold" disabled={busy} onClick={submit}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>رده سنی</Label>
+            <Input value={form.age_rating} onChange={(e) => set("age_rating")(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>مدت بازی (دقیقه)</Label>
+            <Input
+              inputMode="numeric"
+              value={form.duration_minutes}
+              onChange={(e) => set("duration_minutes")(digits(e.target.value))}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>لینک منبع</Label>
+          <Input dir="ltr" value={form.source_url} onChange={(e) => set("source_url")(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label>تصویر پوستر</Label>
+          <Input
+            type="file"
+            accept="image/*"
+            disabled={uploading}
+            onChange={(e) => uploadPoster(e.target.files?.[0])}
+          />
+          {uploading && <p className="text-xs text-muted-foreground">در حال آپلود…</p>}
+          {form.poster_url && (
+            <img
+              src={form.poster_url}
+              alt="پیش‌نمایش پوستر پیشنهادی"
+              className="h-40 w-28 rounded-lg object-cover"
+              loading="lazy"
+            />
+          )}
+        </div>
+        <Button className="w-full font-bold" disabled={busy || uploading} onClick={submit}>
           ارسال پیشنهاد
         </Button>
       </div>
