@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           creator_studio: string | null
           description: string
+          duration_max_minutes: number | null
           duration_minutes: number | null
           id: string
           max_players: number | null
@@ -39,6 +40,7 @@ export type Database = {
           created_at?: string
           creator_studio?: string | null
           description?: string
+          duration_max_minutes?: number | null
           duration_minutes?: number | null
           id?: string
           max_players?: number | null
@@ -57,6 +59,7 @@ export type Database = {
           created_at?: string
           creator_studio?: string | null
           description?: string
+          duration_max_minutes?: number | null
           duration_minutes?: number | null
           id?: string
           max_players?: number | null
@@ -118,6 +121,7 @@ export type Database = {
           created_by: string | null
           creator_studio: string | null
           description: string
+          duration_max_minutes: number | null
           duration_minutes: number | null
           featured: boolean
           genres: string[]
@@ -137,6 +141,7 @@ export type Database = {
           created_by?: string | null
           creator_studio?: string | null
           description?: string
+          duration_max_minutes?: number | null
           duration_minutes?: number | null
           featured?: boolean
           genres?: string[]
@@ -156,6 +161,7 @@ export type Database = {
           created_by?: string | null
           creator_studio?: string | null
           description?: string
+          duration_max_minutes?: number | null
           duration_minutes?: number | null
           featured?: boolean
           genres?: string[]
