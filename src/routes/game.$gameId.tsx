@@ -446,6 +446,27 @@ function GamePage() {
           بازگشت به جدول رتبه‌بندی
         </Link>
       </div>
+
+      <Dialog open={!!reportFor} onOpenChange={(o) => !o && setReportFor(null)}>
+        <DialogContent dir="rtl" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>گزارش نظر</DialogTitle>
+            <DialogDescription>
+              دلیل گزارش را بنویسید (توهین، اسپویل بدون هشدار، تبلیغ، محتوای نامناسب و...). مدیران بررسی می‌کنند.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            placeholder="دلیل گزارش..."
+            rows={4}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="secondary" onClick={() => setReportFor(null)}>انصراف</Button>
+            <Button onClick={submitReport}>ارسال گزارش</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
