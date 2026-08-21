@@ -173,6 +173,26 @@ function AdminPage() {
     toast.info("اطلاعات پیشنهاد در فرم پرونده بارگذاری شد");
   };
 
+  const downloadImage = async (url: string, title: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("failed");
+      const blob = await res.blob();
+      const ext = (url.split("?")[0].split(".").pop() ?? "jpg").slice(0, 5);
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = `${title || "poster"}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(href);
+    } catch {
+      window.open(url, "_blank", "noopener");
+      toast.error("دانلود مستقیم ممکن نشد؛ تصویر در تب جدید باز شد");
+    }
+  };
+
   const saveM = async () => {
     const value = Number(mValue);
     if (!Number.isFinite(value) || value < 0) {
