@@ -27,6 +27,8 @@ function AdminPage() {
   const { isAdmin, loading, user } = useAuth();
   const qc = useQueryClient();
   const [mValue, setMValue] = useState("");
+  const [tab, setTab] = useState("games");
+  const [draft, setDraft] = useState<GameDraft>(emptyDraft);
 
   const { data: suggestions } = useQuery({
     queryKey: ["admin-suggestions"],
