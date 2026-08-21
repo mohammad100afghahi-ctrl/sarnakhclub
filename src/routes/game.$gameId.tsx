@@ -67,14 +67,38 @@ function GamePage() {
   const { data: reviews } = useQuery({
     queryKey: ["reviews", gameId, sort],
     queryFn: async () => {
-      const q = supabase.from("reviews").select("*, profiles(username, avatar_url)").eq("game_id", gameId);
-      const { data } =
+      const q = supabase.from("reviews").select("*").eq("game_id", gameId);
+      const { data, error } =
         sort === "popular"
           ? await q.order("helpful_count", { ascending: false })
           : await q.order("created_at", { ascending: false });
-      return (data ?? []) as unknown as Review[];
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as Review[];
+      const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", ids);
+        const map = new Map((profs ?? []).map((p) => [p.id, p]));
+        rows.forEach((r) => {
+          const p = map.get(r.user_id);
+          r.profiles = p ? { username: p.username, avatar_url: p.avatar_url } : null;
+        });
+      }
+      return rows;
     },
   });
+
+  const { data: myVotes } = useQuery({
+    queryKey: ["my-review-votes", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("review_votes").select("review_id, vote_type").eq("user_id", user!.id);
+      return Object.fromEntries((data ?? []).map((v) => [v.review_id, v.vote_type])) as Record<string, string>;
+    },
+  });
+
 
   const { data: myRating } = useQuery({
     queryKey: ["my-rating", gameId, user?.id],
