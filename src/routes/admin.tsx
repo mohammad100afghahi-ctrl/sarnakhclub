@@ -111,15 +111,40 @@ function AdminPage() {
     },
   });
 
-  const setSuggestionStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("game_suggestions").update({ status }).eq("id", id);
+  const approveSuggestion = async (s: {
+    id: string;
+    title: string;
+    description: string | null;
+    creator_studio: string | null;
+    min_players?: number | null;
+    max_players?: number | null;
+    age_rating?: string | null;
+    duration_minutes?: number | null;
+    duration_max_minutes?: number | null;
+    poster_url: string | null;
+  }) => {
+    const { error } = await supabase.from("games").insert({
+      title: s.title,
+      description: s.description ?? "",
+      creator_studio: s.creator_studio,
+      min_players: s.min_players ?? null,
+      max_players: s.max_players ?? null,
+      age_rating: s.age_rating ?? null,
+      duration_minutes: s.duration_minutes ?? null,
+      duration_max_minutes: s.duration_max_minutes ?? null,
+      poster_url: s.poster_url,
+      status: "active",
+      created_by: user?.id ?? null,
+    });
     if (error) {
-      toast.error("به‌روزرسانی ناموفق بود");
+      toast.error("ساخت پرونده ناموفق بود");
       return;
     }
-    toast.success("وضعیت پیشنهاد به‌روزرسانی شد");
-    qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
+    await supabase.from("game_suggestions").delete().eq("id", s.id);
+    toast.success("پرونده ساخته شد و در بخش پرونده‌ها منتشر شد");
+    qc.invalidateQueries();
   };
+
 
   const deleteSuggestion = async (id: string) => {
     const { error } = await supabase.from("game_suggestions").delete().eq("id", id);
