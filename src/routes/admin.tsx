@@ -87,6 +87,27 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
   };
 
+  const buildFromSuggestion = (s: {
+    title: string;
+    description: string | null;
+    creator_studio: string | null;
+    release_year: number | null;
+    platforms: string[] | null;
+    poster_url: string | null;
+  }) => {
+    setDraft({
+      ...emptyDraft,
+      title: s.title,
+      description: s.description ?? "",
+      creator_studio: s.creator_studio ?? "",
+      release_year: s.release_year ? String(s.release_year) : "",
+      platforms: (s.platforms ?? []).join("، "),
+      poster_url: s.poster_url ?? "",
+    });
+    setTab("games");
+    toast.info("اطلاعات پیشنهاد در فرم پرونده بارگذاری شد");
+  };
+
   const setTagStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("tags").update({ status }).eq("id", id);
     if (error) {
