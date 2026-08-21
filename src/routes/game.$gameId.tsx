@@ -309,15 +309,16 @@ function GamePage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 px-4 py-8">
-      <div className="grid gap-6 sm:grid-cols-[240px_minmax(0,1fr)]">
-        <div className="overflow-hidden rounded-xl surface-case">
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:space-y-10 sm:py-8">
+      <div className="grid gap-5 sm:grid-cols-[240px_minmax(0,1fr)] sm:gap-6">
+        <div className="mx-auto w-40 overflow-hidden rounded-xl surface-case sm:mx-0 sm:w-auto">
           <div className="aspect-[3/4] bg-muted">
             {g.poster_url && (
               <img src={g.poster_url} alt={`پوستر ${g.title}`} className="h-full w-full object-cover" />
             )}
           </div>
         </div>
+
 
         <div className="min-w-0 space-y-4">
           <div>
@@ -341,10 +342,10 @@ function GamePage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 rounded-xl surface-case p-4">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl surface-case p-3 sm:gap-4 sm:p-4">
             <div className="flex items-baseline gap-1">
-              <Star className="h-6 w-6 fill-current text-primary" />
-              <span className="text-4xl font-black text-primary">{faNum(Number(g.raw_avg), 1)}</span>
+              <Star className="h-5 w-5 fill-current text-primary sm:h-6 sm:w-6" />
+              <span className="text-3xl font-black text-primary sm:text-4xl">{faNum(Number(g.raw_avg), 1)}</span>
               <span className="text-sm text-muted-foreground">/ ۱۰</span>
             </div>
             <div className="text-xs text-muted-foreground">
@@ -361,27 +362,35 @@ function GamePage() {
               </Link>
             )}
 
-            <div className="mr-auto flex flex-wrap gap-2">
-              <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
-                <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
-                {played ? "بازی شده" : "بازی شده"}
+            <div className="grid w-full grid-cols-2 gap-2 sm:mr-auto sm:flex sm:w-auto sm:flex-wrap">
+              <Button
+                variant={played ? "secondary" : "outline"}
+                className="gap-2 px-2 text-xs sm:px-4 sm:text-sm"
+                onClick={togglePlayed}
+              >
+                <CheckCircle2 className={played ? "h-4 w-4 shrink-0 fill-current text-primary" : "h-4 w-4 shrink-0"} />
+                <span className="truncate">بازی شده</span>
               </Button>
-              <Button variant={inWishlist ? "secondary" : "outline"} className="gap-2" onClick={toggleWishlist}>
-                <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
-                {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+              <Button
+                variant={inWishlist ? "secondary" : "outline"}
+                className="gap-2 px-2 text-xs sm:px-4 sm:text-sm"
+                onClick={toggleWishlist}
+              >
+                <Heart className={inWishlist ? "h-4 w-4 shrink-0 fill-current text-primary" : "h-4 w-4 shrink-0"} />
+                <span className="truncate">{inWishlist ? "در علاقه‌مندی‌ها" : "علاقه‌مندی‌ها"}</span>
               </Button>
             </div>
 
           </div>
 
-          <div className="rounded-xl surface-case p-4">
+          <div className="rounded-xl surface-case p-3 sm:p-4">
             <p className="mb-2 text-sm font-bold">امتیاز شما {myRating ? `(${toFa(myRating)})` : ""}</p>
-            <div className="flex flex-wrap gap-1">
+            <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
               {Array.from({ length: 10 }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => rate(i + 1)}
-                  className={`h-9 w-9 rounded-md border border-border text-sm font-bold transition-colors hover:bg-primary hover:text-primary-foreground ${
+                  className={`h-9 rounded-md border border-border text-xs font-bold transition-colors hover:bg-primary hover:text-primary-foreground sm:text-sm ${
                     myRating && myRating >= i + 1 ? "bg-primary/20 text-primary" : "bg-secondary"
                   }`}
                 >
@@ -396,6 +405,7 @@ function GamePage() {
             <Info label="رده سنی" value={faAge(g.age_rating)} />
             <Info label="مدت بازی" value={faDurationRange(g.duration_minutes, g.duration_max_minutes)} />
           </div>
+
 
           <p className="leading-8 text-muted-foreground">{g.description}</p>
 
