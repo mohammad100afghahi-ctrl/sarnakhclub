@@ -95,23 +95,6 @@ function RankingPage() {
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {filters.map((f) => (
-          <Select key={f.label} value={f.value} onValueChange={f.set} dir="rtl">
-            <SelectTrigger aria-label={f.label}>
-              <SelectValue placeholder={f.label} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{f.label}: همه</SelectItem>
-              {f.options.map((o) => (
-                <SelectItem key={o} value={o}>
-                  {toFa(o)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ))}
-      </div>
 
       <div className="overflow-hidden rounded-xl surface-case">
         <div className="hidden grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem] items-center gap-3 border-b border-border px-4 py-3 text-xs text-muted-foreground sm:grid">
