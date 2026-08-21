@@ -547,11 +547,41 @@ function GamePage() {
         </section>
       )}
 
-      <div className="text-center">
+      <div className="flex flex-col items-center gap-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => (user ? setInfoOpen(true) : needLogin())}
+        >
+          <Flag className="h-4 w-4" /> گزارش نادرست بودن اطلاعات پرونده
+        </Button>
         <Link to="/ranking" className="text-sm text-primary hover:underline">
           بازگشت به جدول رتبه‌بندی
         </Link>
       </div>
+
+      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
+        <DialogContent dir="rtl" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>گزارش نادرست بودن اطلاعات</DialogTitle>
+            <DialogDescription>
+              بنویسید کدام بخش از اطلاعات این پرونده نادرست است و مقدار درست چیست. مدیران بررسی و اصلاح می‌کنند.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={infoText}
+            onChange={(e) => setInfoText(e.target.value)}
+            placeholder="مثلاً: تعداد بازیکن‌ها اشتباه است، درستش ۴ تا ۸ نفر است."
+            rows={4}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="secondary" onClick={() => setInfoOpen(false)}>انصراف</Button>
+            <Button onClick={submitInfoReport}>ارسال گزارش</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!reportFor} onOpenChange={(o) => !o && setReportFor(null)}>
         <DialogContent dir="rtl" className="sm:max-w-md">
