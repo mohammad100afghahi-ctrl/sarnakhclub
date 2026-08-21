@@ -107,7 +107,11 @@ export const importCase = createServerFn({ method: "POST" })
       return { status: "duplicate" as const, reason: "قبلاً ثبت شده", title: extracted.title };
     }
 
-    const posterUrl = extracted.poster_url ? await uploadPoster(extracted.poster_url) : null;
+    const posterCandidates = [extracted.poster_url, ...images].filter((u): u is string => Boolean(u));
+    const posterUrl = posterCandidates.length
+      ? await uploadPoster(posterCandidates[0]!, posterCandidates.slice(1))
+      : null;
+
 
     const { error } = await context.supabase.from("game_suggestions").insert({
       user_id: context.userId,
