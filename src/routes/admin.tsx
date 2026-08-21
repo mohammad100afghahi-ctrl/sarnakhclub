@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toFa } from "@/lib/fa";
+import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -26,6 +27,8 @@ function AdminPage() {
   const { isAdmin, loading, user } = useAuth();
   const qc = useQueryClient();
   const [mValue, setMValue] = useState("");
+  const [tab, setTab] = useState("games");
+  const [draft, setDraft] = useState<GameDraft>(emptyDraft);
 
   const { data: suggestions } = useQuery({
     queryKey: ["admin-suggestions"],
@@ -84,6 +87,27 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
   };
 
+  const buildFromSuggestion = (s: {
+    title: string;
+    description: string | null;
+    creator_studio: string | null;
+    release_year: number | null;
+    platforms: string[] | null;
+    poster_url: string | null;
+  }) => {
+    setDraft({
+      ...emptyDraft,
+      title: s.title,
+      description: s.description ?? "",
+      creator_studio: s.creator_studio ?? "",
+      release_year: s.release_year ? String(s.release_year) : "",
+      platforms: (s.platforms ?? []).join("، "),
+      poster_url: s.poster_url ?? "",
+    });
+    setTab("games");
+    toast.info("اطلاعات پیشنهاد در فرم پرونده بارگذاری شد");
+  };
+
   const setTagStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("tags").update({ status }).eq("id", id);
     if (error) {
@@ -132,13 +156,18 @@ function AdminPage() {
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-10">
       <h1 className="text-2xl font-black">پنل مدیریت</h1>
 
-      <Tabs defaultValue="suggestions" dir="rtl">
+      <Tabs value={tab} onValueChange={setTab} dir="rtl">
         <TabsList className="w-full">
+          <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
           <TabsTrigger value="tags" className="flex-1">برچسب‌ها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="games" className="pt-4">
+          <GamesManager draft={draft} setDraft={setDraft} userId={user.id} />
+        </TabsContent>
 
         <TabsContent value="suggestions" className="space-y-2 pt-4">
           {(suggestions ?? []).map((s) => (
@@ -149,8 +178,9 @@ function AdminPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">{s.description}</p>
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => buildFromSuggestion(s)}>ساخت پرونده از این پیشنهاد</Button>
+                <Button size="sm" variant="outline" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
                 <Button size="sm" variant="secondary" onClick={() => setSuggestionStatus(s.id, "rejected")}>رد</Button>
               </div>
             </div>
