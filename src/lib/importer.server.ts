@@ -2,6 +2,16 @@ const GATEWAY = "https://connector-gateway.lovable.dev/firecrawl/v2";
 const MIN_FIRECRAWL_INTERVAL_MS = 6_500;
 let nextFirecrawlRequestAt = 0;
 
+export async function assertImporterAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error || !data) throw new Error("دسترسی مجاز نیست.");
+}
+
 export class FirecrawlRequestError extends Error {
   constructor(
     public readonly status: number,
