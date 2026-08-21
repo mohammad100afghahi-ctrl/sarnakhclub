@@ -298,10 +298,17 @@ function GamePage() {
               <p>{faNum(g.votes)} رای‌دهنده</p>
               <p>امتیاز وزنی: {faNum(Number(g.weighted_score), 1)}</p>
             </div>
-            <Button variant={inWishlist ? "secondary" : "outline"} className="mr-auto gap-2" onClick={toggleWishlist}>
-              <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
-              {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-            </Button>
+            <div className="mr-auto flex flex-wrap gap-2">
+              <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
+                <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
+                {played ? "انجام داده‌ام" : "انجامش داده‌ام"}
+              </Button>
+              <Button variant={inWishlist ? "secondary" : "outline"} className="gap-2" onClick={toggleWishlist}>
+                <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
+                {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+              </Button>
+            </div>
+
           </div>
 
           <div className="rounded-xl surface-case p-4">
