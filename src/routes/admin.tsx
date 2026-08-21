@@ -317,8 +317,9 @@ function AdminPage() {
                     دانلود تصویر
                   </Button>
                 )}
-                <Button size="sm" onClick={() => buildFromSuggestion(s)}>ساخت پرونده از این پیشنهاد</Button>
-                <Button size="sm" variant="outline" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
+                <Button size="sm" onClick={() => approveSuggestion(s)}>تایید و انتشار</Button>
+                <Button size="sm" variant="outline" onClick={() => buildFromSuggestion(s)}>ویرایش پیش از انتشار</Button>
+
                 <Button size="sm" variant="secondary" onClick={() => deleteSuggestion(s.id)}>رد</Button>
               </div>
             </div>
