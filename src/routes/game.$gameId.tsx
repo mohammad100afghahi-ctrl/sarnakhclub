@@ -25,16 +25,67 @@ import { GameQuickEdit } from "@/components/admin/GameQuickEdit";
 import { faAge, faDate, faDurationRange, faNum, toFa } from "@/lib/fa";
 
 export const Route = createFileRoute("/game/$gameId")({
-  head: () => ({
-    meta: [
-      { title: "پرونده بازی | سرنخ" },
-      { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران و پرونده‌های مشابه." },
-      { property: "og:title", content: "پرونده بازی | سرنخ" },
-      { property: "og:description", content: "امتیاز میانگین، نقد کاربران و اطلاعات کامل بازی‌های معمایی." },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("game_rankings")
+      .select("id, title, description, poster_url, raw_avg, votes")
+      .eq("id", params.gameId)
+      .maybeSingle();
+    return { game: data as unknown as {
+      id: string;
+      title: string;
+      description: string | null;
+      poster_url: string | null;
+      raw_avg: number | null;
+      votes: number | null;
+    } | null };
+  },
+  head: ({ params, loaderData }) => {
+    const g = loaderData?.game;
+    const name = g?.title ?? "پرونده بازی";
+    const title = `${name} | سرنخ`;
+    const desc = (g?.description ?? "جزئیات کامل بازی: امتیاز، نظرات کاربران و پرونده‌های مشابه.")
+      .replace(/\s+/g, " ")
+      .slice(0, 155);
+    const url = `https://sarnakhclub.lovable.app/game/${params.gameId}`;
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: desc },
+      { property: "og:title", content: title },
+      { property: "og:description", content: desc },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: url },
+    ];
+    if (g?.poster_url?.startsWith("https://")) {
+      meta.push({ property: "og:image", content: g.poster_url });
+      meta.push({ name: "twitter:image", content: g.poster_url });
+    }
+    const ld: Record<string, unknown> = {
+      "@context": "https://schema.org",
+      "@type": "Game",
+      name,
+      url,
+      ...(g?.description ? { description: g.description } : {}),
+      ...(g?.poster_url ? { image: g.poster_url } : {}),
+    };
+    if (g?.raw_avg && (g?.votes ?? 0) > 0) {
+      ld["aggregateRating"] = {
+        "@type": "AggregateRating",
+        ratingValue: Number(g.raw_avg).toFixed(1),
+        ratingCount: g.votes,
+        bestRating: 10,
+        worstRating: 1,
+      };
+    }
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(ld) }],
+    };
+  },
   component: GamePage,
 });
+
 
 type Review = {
   id: string;

@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RankingRouteImport } from './routes/ranking'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SuggestRouteImport } from './routes/suggest'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -51,6 +52,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const RankingRoute = RankingRouteImport.update({
   id: '/ranking',
   path: '/ranking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuggestRoute = SuggestRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest': typeof SuggestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest': typeof SuggestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/profile': typeof ProfileRoute
   '/ranking': typeof RankingRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/suggest': typeof SuggestRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/profile'
     | '/ranking'
+    | '/sitemap.xml'
     | '/suggest'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/profile'
     | '/ranking'
+    | '/sitemap.xml'
     | '/suggest'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/profile'
     | '/ranking'
+    | '/sitemap.xml'
     | '/suggest'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   ProfileRoute: typeof ProfileRoute
   RankingRoute: typeof RankingRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SuggestRoute: typeof SuggestRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/ranking'
       fullPath: '/ranking'
       preLoaderRoute: typeof RankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suggest': {
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   ProfileRoute: ProfileRoute,
   RankingRoute: RankingRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SuggestRoute: SuggestRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
