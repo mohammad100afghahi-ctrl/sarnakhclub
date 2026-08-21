@@ -173,7 +173,7 @@ function GamePage() {
     if (played) await supabase.from("played_games").delete().eq("user_id", user.id).eq("game_id", gameId);
     else await supabase.from("played_games").insert({ user_id: user.id, game_id: gameId });
     qc.invalidateQueries({ queryKey: ["played"] });
-    toast.success(played ? "از لیست انجام‌شده‌ها حذف شد" : "به لیست انجام‌شده‌ها اضافه شد");
+    toast.success(played ? "از لیست بازی شده حذف شد" : "به لیست بازی شده اضافه شد");
   };
 
   const toggleWishlist = async () => {
