@@ -2,16 +2,10 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { faNum, toFa, AGE_RATINGS } from "@/lib/fa";
+import { faNum, toFa } from "@/lib/fa";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/ranking")({
   head: () => ({
@@ -40,12 +34,8 @@ type Row = {
   weighted_score: number;
 };
 
-const ALL = "همه";
-
 function RankingPage() {
   const [tab, setTab] = useState("all");
-  const [year, setYear] = useState(ALL);
-  const [age, setAge] = useState(ALL);
 
   const { data, isLoading } = useQuery({
     queryKey: ["rankings"],
@@ -57,25 +47,13 @@ function RankingPage() {
     staleTime: 60_000,
   });
 
-  const years = useMemo(
-    () => Array.from(new Set((data ?? []).map((r) => r.release_year).filter(Boolean))).sort((a, b) => b! - a!),
-    [data],
-  );
-
   const rows = useMemo(() => {
-    let list = [...(data ?? [])];
-    if (year !== ALL) list = list.filter((r) => String(r.release_year) === year);
-    if (age !== ALL) list = list.filter((r) => r.age_rating === age);
-    if (tab === "year") list = list.filter((r) => r.release_year === new Date().getFullYear());
+    const list = [...(data ?? [])];
     if (tab === "votes") list.sort((a, b) => b.votes - a.votes);
     else list.sort((a, b) => Number(b.weighted_score) - Number(a.weighted_score));
-    return list;
-  }, [data, year, age, tab]);
+    return tab === "year" ? list.filter((r) => r.release_year === new Date().getFullYear()) : list;
+  }, [data, tab]);
 
-  const filters = [
-    { label: "سال", value: year, set: setYear, options: years.map((y) => String(y)) },
-    { label: "رده سنی", value: age, set: setAge, options: AGE_RATINGS as readonly string[] },
-  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
@@ -95,23 +73,6 @@ function RankingPage() {
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {filters.map((f) => (
-          <Select key={f.label} value={f.value} onValueChange={f.set} dir="rtl">
-            <SelectTrigger aria-label={f.label}>
-              <SelectValue placeholder={f.label} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{f.label}: همه</SelectItem>
-              {f.options.map((o) => (
-                <SelectItem key={o} value={o}>
-                  {toFa(o)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ))}
-      </div>
 
       <div className="overflow-hidden rounded-xl surface-case">
         <div className="hidden grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem] items-center gap-3 border-b border-border px-4 py-3 text-xs text-muted-foreground sm:grid">
@@ -158,7 +119,7 @@ function RankingPage() {
               </Link>
             ))}
         {!isLoading && rows.length === 0 && (
-          <p className="p-8 text-center text-sm text-muted-foreground">پرونده‌ای با این فیلترها پیدا نشد.</p>
+          <p className="p-8 text-center text-sm text-muted-foreground">هنوز پرونده‌ای ثبت نشده است.</p>
         )}
       </div>
     </div>

@@ -66,6 +66,19 @@ function GamePage() {
     },
   });
 
+  const { data: rankInfo } = useQuery({
+    queryKey: ["game-rank", gameId],
+    queryFn: async () => {
+      const { data } = await supabase.from("game_rankings").select("id, weighted_score");
+      const list = [...((data ?? []) as unknown as { id: string; weighted_score: number }[])].sort(
+        (a, b) => Number(b.weighted_score) - Number(a.weighted_score),
+      );
+      const idx = list.findIndex((r) => r.id === gameId);
+      return idx === -1 ? null : { rank: idx + 1, total: list.length };
+    },
+    staleTime: 60_000,
+  });
+
   const { data: similar } = useQuery({
     queryKey: ["similar", gameId],
     enabled: !!game,
@@ -74,6 +87,7 @@ function GamePage() {
       return (data ?? []) as unknown as GameCardData[];
     },
   });
+
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", gameId, sort],
@@ -331,6 +345,17 @@ function GamePage() {
               <p>{faNum(g.votes)} رای‌دهنده</p>
               <p>امتیاز وزنی: {faNum(Number(g.weighted_score), 1)}</p>
             </div>
+            {rankInfo && (
+              <Link
+                to="/ranking"
+                className="rounded-lg border border-border px-3 py-2 text-xs transition-colors hover:bg-accent"
+              >
+                <span className="text-muted-foreground">رتبه فعلی: </span>
+                <span className="text-base font-black text-primary">{toFa(rankInfo.rank)}</span>
+                <span className="text-muted-foreground"> از {toFa(rankInfo.total)}</span>
+              </Link>
+            )}
+
             <div className="mr-auto flex flex-wrap gap-2">
               <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
                 <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
