@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+function safeNext(v: unknown): string {
+  return typeof v === "string" && v.startsWith("/") && !v.startsWith("//") ? v : "";
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({ next: safeNext(s['next']) }),
   head: () => ({
     meta: [
       { title: "ورود و ثبت‌نام | سرنخ" },
@@ -29,6 +34,11 @@ const schema = z.object({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const returnTo = () => {
+    if (next) { window.location.href = next; return true; }
+    return false;
+  };
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,12 +56,16 @@ function AuthPage() {
       setBusy(false);
       if (error) { toast.error("ورود ناموفق: ایمیل یا رمز عبور اشتباه است"); return; }
       toast.success("خوش آمدید");
+      if (returnTo()) return;
       navigate({ to: "/" });
     } else {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin, data: { username } },
+        options: {
+          emailRedirectTo: next ? window.location.origin + next : window.location.origin,
+          data: { username },
+        },
       });
       setBusy(false);
       if (error) { toast.error(error.message); return; }
@@ -60,9 +74,12 @@ function AuthPage() {
   };
 
   const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: next ? window.location.origin + next : window.location.origin,
+    });
     if (result.error) { toast.error("ورود با گوگل ناموفق بود"); return; }
     if (result.redirected) return;
+    if (returnTo()) return;
     navigate({ to: "/" });
   };
 
