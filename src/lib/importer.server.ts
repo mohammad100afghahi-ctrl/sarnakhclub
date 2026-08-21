@@ -68,7 +68,7 @@ export async function extractCase(pageUrl: string, markdown: string, images: str
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: "google/gemini-3-flash",
+      model: "google/gemini-3.7-flash",
       messages: [
         {
           role: "system",
