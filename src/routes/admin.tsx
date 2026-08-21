@@ -160,11 +160,20 @@ function AdminPage() {
         <TabsContent value="suggestions" className="space-y-2 pt-4">
           {(suggestions ?? []).map((s) => (
             <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4 text-sm">
-              <div>
-                <p className="font-bold">
-                  {s.title} {s.release_year ? `(${toFa(s.release_year)})` : ""}
-                </p>
-                <p className="text-xs text-muted-foreground">{s.description}</p>
+              <div className="flex items-start gap-3">
+                {s.poster_url && (
+                  <img
+                    src={s.poster_url}
+                    alt={s.title}
+                    className="h-20 w-14 shrink-0 rounded-md object-cover"
+                  />
+                )}
+                <div>
+                  <p className="font-bold">
+                    {s.title} {s.release_year ? `(${toFa(s.release_year)})` : ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{s.description}</p>
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" onClick={() => buildFromSuggestion(s)}>ساخت پرونده از این پیشنهاد</Button>
