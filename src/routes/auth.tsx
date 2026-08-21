@@ -44,7 +44,7 @@ function AuthPage() {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
-      if (error) return toast.error("ورود ناموفق: ایمیل یا رمز عبور اشتباه است");
+      if (error) { toast.error("ورود ناموفق: ایمیل یا رمز عبور اشتباه است"); return; }
       toast.success("خوش آمدید");
       navigate({ to: "/" });
     } else {
@@ -54,22 +54,22 @@ function AuthPage() {
         options: { emailRedirectTo: window.location.origin, data: { username } },
       });
       setBusy(false);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       toast.success("ثبت‌نام انجام شد. لینک تایید به ایمیل شما ارسال شد.");
     }
   };
 
   const google = async () => {
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) return toast.error("ورود با گوگل ناموفق بود");
+    if (result.error) { toast.error("ورود با گوگل ناموفق بود"); return; }
     if (result.redirected) return;
     navigate({ to: "/" });
   };
 
   const reset = async () => {
-    if (!email) return toast.error("ابتدا ایمیل خود را وارد کنید");
+    if (!email) { toast.error("ابتدا ایمیل خود را وارد کنید"); return; }
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("لینک بازیابی رمز به ایمیل شما ارسال شد");
   };
 
