@@ -23,7 +23,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const { data: games } = await supabase
           .from("game_rankings")
           .select("id, creator_studio")
-          .eq("status", "published");
+          .eq("status", "active");
 
         const studios = new Set<string>();
         for (const g of (games ?? []) as { id: string | null; creator_studio: string | null }[]) {
