@@ -42,6 +42,21 @@ function ProfilePage() {
     },
   });
 
+  const { data: playedList } = useQuery({
+    queryKey: ["played-full", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("played_games")
+        .select("game_id, games(id,title,poster_url,release_year)")
+        .eq("user_id", user!.id);
+      return (data ?? []) as unknown as {
+        game_id: string;
+        games: { id: string; title: string; poster_url: string | null; release_year: number | null } | null;
+      }[];
+    },
+  });
+
   const { data: ratings } = useQuery({
     queryKey: ["my-ratings", user?.id],
     enabled: !!user,
