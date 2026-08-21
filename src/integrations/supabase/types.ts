@@ -481,6 +481,7 @@ export type Database = {
           created_by: string | null
           creator_studio: string | null
           description: string | null
+          duration_max_minutes: number | null
           duration_minutes: number | null
           featured: boolean | null
           genres: string[] | null
