@@ -9,12 +9,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-function safeNext(v: unknown): string {
-  return typeof v === "string" && v.startsWith("/") && !v.startsWith("//") ? v : "";
+function safeNext(v: unknown): string | undefined {
+  return typeof v === "string" && v.startsWith("/") && !v.startsWith("//") ? v : undefined;
 }
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({ next: safeNext(s['next']) }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const next = safeNext(s['next']);
+    return next ? { next } : {};
+  },
   head: () => ({
     meta: [
       { title: "ورود و ثبت‌نام | سرنخ" },
