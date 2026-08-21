@@ -156,13 +156,18 @@ function AdminPage() {
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-10">
       <h1 className="text-2xl font-black">پنل مدیریت</h1>
 
-      <Tabs defaultValue="suggestions" dir="rtl">
+      <Tabs value={tab} onValueChange={setTab} dir="rtl">
         <TabsList className="w-full">
+          <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
           <TabsTrigger value="tags" className="flex-1">برچسب‌ها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="games" className="pt-4">
+          <GamesManager draft={draft} setDraft={setDraft} userId={user.id} />
+        </TabsContent>
 
         <TabsContent value="suggestions" className="space-y-2 pt-4">
           {(suggestions ?? []).map((s) => (
