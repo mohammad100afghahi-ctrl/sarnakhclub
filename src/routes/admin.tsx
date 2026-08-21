@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toFa } from "@/lib/fa";
+import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
