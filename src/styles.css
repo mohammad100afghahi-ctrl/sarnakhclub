@@ -126,8 +126,11 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     background-image: radial-gradient(
-challenge, transparent 0 0
+      circle at 50% -10%,
+      color-mix(in oklab, var(--gold) 8%, transparent),
+      transparent 60%
     );
+    background-attachment: fixed;
   }
 
   h1,
