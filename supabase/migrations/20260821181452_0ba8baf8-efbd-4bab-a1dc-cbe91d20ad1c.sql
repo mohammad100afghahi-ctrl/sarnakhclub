@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.primary_admin_id() FROM anon;
