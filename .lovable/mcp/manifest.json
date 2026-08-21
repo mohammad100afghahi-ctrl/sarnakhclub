@@ -1,0 +1,196 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.3",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://ikbaimlewxzzrjijdfvk.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "sarnakh",
+      "version": "0.1.0",
+      "title": "سرنخ"
+    },
+    "tools": [
+      {
+        "name": "search_games",
+        "title": "Search cases",
+        "description": "Search published mystery/detective game cases on سرنخ by title or creator group. Returns id, title, creator, rating and rank score.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Text to match against the game title or creator group."
+            },
+            "limit": {
+              "default": 10,
+              "description": "Maximum number of results.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_game",
+        "title": "Get case details",
+        "description": "Fetch the full details of one case on سرنخ by its id, including rating, votes and recent reviews.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "game_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "The case id."
+            }
+          },
+          "required": [
+            "game_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "top_cases",
+        "title": "Top ranked cases",
+        "description": "List the highest ranked cases on سرنخ, ordered by the site's weighted (Bayesian) score.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 10,
+              "description": "How many cases to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "rate_game",
+        "title": "Rate a case",
+        "description": "Set or update the signed-in user's score (1-10) for a case on سرنخ.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "game_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "The case id."
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Score from 1 to 10."
+            }
+          },
+          "required": [
+            "game_id",
+            "score"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "mark_played",
+        "title": "Mark case as played",
+        "description": "Add or remove a case from the signed-in user's played list on سرنخ.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "game_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "The case id."
+            },
+            "played": {
+              "default": true,
+              "description": "True to mark as played, false to remove it.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "game_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "my_lists",
+        "title": "My cases",
+        "description": "List the signed-in user's own سرنخ data: played cases, wishlist, or their ratings.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "string",
+              "enum": [
+                "played",
+                "wishlist",
+                "ratings"
+              ],
+              "description": "Which of the user's lists to return."
+            }
+          },
+          "required": [
+            "list"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
