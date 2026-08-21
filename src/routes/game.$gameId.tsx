@@ -66,6 +66,19 @@ function GamePage() {
     },
   });
 
+  const { data: rankInfo } = useQuery({
+    queryKey: ["game-rank", gameId],
+    queryFn: async () => {
+      const { data } = await supabase.from("game_rankings").select("id, weighted_score");
+      const list = [...((data ?? []) as unknown as { id: string; weighted_score: number }[])].sort(
+        (a, b) => Number(b.weighted_score) - Number(a.weighted_score),
+      );
+      const idx = list.findIndex((r) => r.id === gameId);
+      return idx === -1 ? null : { rank: idx + 1, total: list.length };
+    },
+    staleTime: 60_000,
+  });
+
   const { data: similar } = useQuery({
     queryKey: ["similar", gameId],
     enabled: !!game,
@@ -74,6 +87,7 @@ function GamePage() {
       return (data ?? []) as unknown as GameCardData[];
     },
   });
+
 
   const { data: reviews } = useQuery({
     queryKey: ["reviews", gameId, sort],
