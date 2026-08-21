@@ -107,6 +107,16 @@ function AdminPage() {
     qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
   };
 
+  const deleteSuggestion = async (id: string) => {
+    const { error } = await supabase.from("game_suggestions").delete().eq("id", id);
+    if (error) {
+      toast.error("حذف پیشنهاد ناموفق بود");
+      return;
+    }
+    toast.success("پیشنهاد رد و حذف شد");
+    qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
+  };
+
   const setReportStatus = async (id: string, status: "resolved" | "dismissed" | "open") => {
     const { error } = await supabase.from("review_reports").update({ status }).eq("id", id);
     if (error) { toast.error("به‌روزرسانی گزارش ناموفق بود"); return; }
