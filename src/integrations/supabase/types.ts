@@ -14,16 +14,453 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      game_suggestions: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          creator_studio: string | null
+          description: string
+          id: string
+          platforms: string[]
+          poster_url: string | null
+          release_year: number | null
+          source_url: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          creator_studio?: string | null
+          description?: string
+          id?: string
+          platforms?: string[]
+          poster_url?: string | null
+          release_year?: number | null
+          source_url?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          creator_studio?: string | null
+          description?: string
+          id?: string
+          platforms?: string[]
+          poster_url?: string | null
+          release_year?: number | null
+          source_url?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      game_tags: {
+        Row: {
+          created_by: string | null
+          game_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_by?: string | null
+          game_id: string
+          tag_id: string
+        }
+        Update: {
+          created_by?: string | null
+          game_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_tags_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_rankings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_tags_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          age_rating: string | null
+          created_at: string
+          created_by: string | null
+          creator_studio: string | null
+          description: string
+          duration_minutes: number | null
+          featured: boolean
+          genres: string[]
+          id: string
+          max_players: number | null
+          min_players: number | null
+          platforms: string[]
+          poster_url: string | null
+          release_year: number | null
+          status: string
+          title: string
+          views: number
+        }
+        Insert: {
+          age_rating?: string | null
+          created_at?: string
+          created_by?: string | null
+          creator_studio?: string | null
+          description?: string
+          duration_minutes?: number | null
+          featured?: boolean
+          genres?: string[]
+          id?: string
+          max_players?: number | null
+          min_players?: number | null
+          platforms?: string[]
+          poster_url?: string | null
+          release_year?: number | null
+          status?: string
+          title: string
+          views?: number
+        }
+        Update: {
+          age_rating?: string | null
+          created_at?: string
+          created_by?: string | null
+          creator_studio?: string | null
+          description?: string
+          duration_minutes?: number | null
+          featured?: boolean
+          genres?: string[]
+          id?: string
+          max_players?: number | null
+          min_players?: number | null
+          platforms?: string[]
+          poster_url?: string | null
+          release_year?: number | null
+          status?: string
+          title?: string
+          views?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          is_banned: boolean
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          is_banned?: boolean
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_banned?: boolean
+          username?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          created_at: string
+          game_id: string
+          id: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          id?: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          id?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_rankings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ratings_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          review_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string
+          review_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          review_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_votes: {
+        Row: {
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          review_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          created_at: string
+          game_id: string
+          helpful_count: number
+          id: string
+          is_spoiler: boolean
+          text: string
+          unhelpful_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          helpful_count?: number
+          id?: string
+          is_spoiler?: boolean
+          text: string
+          unhelpful_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          helpful_count?: number
+          id?: string
+          is_spoiler?: boolean
+          text?: string
+          unhelpful_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_rankings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_settings: {
+        Row: {
+          key: string
+          value: number
+        }
+        Insert: {
+          key: string
+          value: number
+        }
+        Update: {
+          key?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wishlist: {
+        Row: {
+          created_at: string
+          game_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_rankings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      game_rankings: {
+        Row: {
+          age_rating: string | null
+          created_at: string | null
+          created_by: string | null
+          creator_studio: string | null
+          description: string | null
+          duration_minutes: number | null
+          featured: boolean | null
+          genres: string[] | null
+          id: string | null
+          max_players: number | null
+          min_players: number | null
+          min_votes: number | null
+          platforms: string[] | null
+          poster_url: string | null
+          raw_avg: number | null
+          release_year: number | null
+          status: string | null
+          title: string | null
+          views: number | null
+          votes: number | null
+          weighted_score: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +587,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
