@@ -11,6 +11,8 @@ import { faDate, toFa } from "@/lib/fa";
 import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 import { AdminsManager } from "@/components/admin/AdminsManager";
 import { FeedbackManager } from "@/components/admin/FeedbackManager";
+import { AiImporter } from "@/components/admin/AiImporter";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
