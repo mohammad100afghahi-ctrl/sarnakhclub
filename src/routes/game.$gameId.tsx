@@ -405,7 +405,7 @@ function GamePage() {
                 >
                   <ThumbsDown className="h-4 w-4" /> {faNum(r.unhelpful_count)}
                 </Button>
-                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => reportReview(r.id)}>
+                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => openReport(r.id)}>
                   <Flag className="h-4 w-4" /> گزارش
                 </Button>
                 {(isAdmin || r.user_id === user?.id) && (
