@@ -4,7 +4,7 @@ import { discoverCases, importCase } from "@/lib/importer.functions";
 export type ImporterRow = {
   url: string;
   selected: boolean;
-  state: "idle" | "running" | "imported" | "duplicate" | "skipped" | "error";
+  state: "idle" | "running" | "waiting" | "imported" | "duplicate" | "skipped" | "error";
   note: string;
 };
 
@@ -17,6 +17,10 @@ export type ImporterState = {
 
 let state: ImporterState = { url: "", loading: false, running: false, rows: [] };
 const listeners = new Set<() => void>();
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
 
 function set(patch: Partial<ImporterState>) {
   state = { ...state, ...patch };
@@ -57,24 +61,61 @@ export const importerStore = {
     set({ running: true });
     const targets = state.rows.filter((r) => r.selected && r.state === "idle");
     for (const target of targets) {
-      set({
-        rows: state.rows.map((r) => (r.url === target.url ? { ...r, state: "running" as const } : r)),
-      });
-      try {
-        const res = await importCase({ data: { url: target.url } });
+      let completed = false;
+      for (let attempt = 0; attempt < 3 && !completed; attempt += 1) {
         set({
           rows: state.rows.map((r) =>
-            r.url === target.url ? { ...r, state: res.status, note: res.title ?? res.reason ?? "" } : r,
+            r.url === target.url ? { ...r, state: "running" as const, note: "" } : r,
           ),
         });
-      } catch (e) {
-        set({
-          rows: state.rows.map((r) =>
-            r.url === target.url
-              ? { ...r, state: "error" as const, note: e instanceof Error ? e.message : "خطا" }
-              : r,
-          ),
-        });
+        try {
+          const res = await importCase({ data: { url: target.url } });
+          if (res.status === "provider_error" && res.retryAfterSeconds !== null) {
+            if (attempt === 2) {
+              set({
+                rows: state.rows.map((r) =>
+                  r.url === target.url ? { ...r, state: "error" as const, note: res.reason } : r,
+                ),
+              });
+              set({ running: false });
+              toast.error("محدودیت سرویس ادامه دارد؛ استخراج متوقف شد و می‌توانید بعداً دوباره شروع کنید.");
+              return;
+            }
+            const waitSeconds = Math.max(1, res.retryAfterSeconds);
+            for (let remaining = waitSeconds; remaining > 0; remaining -= 1) {
+              set({
+                rows: state.rows.map((r) =>
+                  r.url === target.url
+                    ? { ...r, state: "waiting" as const, note: `ادامه خودکار تا ${remaining} ثانیه دیگر` }
+                    : r,
+                ),
+              });
+              await sleep(1_000);
+            }
+            continue;
+          }
+          set({
+            rows: state.rows.map((r) =>
+              r.url === target.url
+                ? {
+                    ...r,
+                    state: res.status === "provider_error" ? ("error" as const) : res.status,
+                    note: res.title ?? res.reason ?? "",
+                  }
+                : r,
+            ),
+          });
+          completed = true;
+        } catch (e) {
+          set({
+            rows: state.rows.map((r) =>
+              r.url === target.url
+                ? { ...r, state: "error" as const, note: e instanceof Error ? e.message : "خطا" }
+                : r,
+            ),
+          });
+          completed = true;
+        }
       }
     }
     set({ running: false });

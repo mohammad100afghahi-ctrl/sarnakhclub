@@ -1,4 +1,78 @@
 const GATEWAY = "https://connector-gateway.lovable.dev/firecrawl/v2";
+const MIN_FIRECRAWL_INTERVAL_MS = 6_500;
+let nextFirecrawlRequestAt = 0;
+
+export async function assertImporterAdmin(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error || !data) throw new Error("دسترسی مجاز نیست.");
+}
+
+export class FirecrawlRequestError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly retryAfterSeconds: number | null,
+  ) {
+    super(message);
+    this.name = "FirecrawlRequestError";
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForFirecrawlSlot() {
+  const waitMs = Math.max(0, nextFirecrawlRequestAt - Date.now());
+  nextFirecrawlRequestAt = Math.max(Date.now(), nextFirecrawlRequestAt) + MIN_FIRECRAWL_INTERVAL_MS;
+  if (waitMs > 0) await sleep(waitMs);
+}
+
+function retryAfterSeconds(response: Response, body: string): number | null {
+  const header = response.headers.get("retry-after");
+  if (header) {
+    const seconds = Number(header);
+    if (Number.isFinite(seconds)) return Math.max(1, Math.ceil(seconds));
+    const date = Date.parse(header);
+    if (Number.isFinite(date)) return Math.max(1, Math.ceil((date - Date.now()) / 1000));
+  }
+  const bodySeconds = body.match(/retry after\s+(\d+)s/i)?.[1];
+  return bodySeconds ? Math.max(1, Number(bodySeconds)) : null;
+}
+
+function providerMessage(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: unknown; message?: unknown };
+    const message = parsed.error ?? parsed.message;
+    if (typeof message === "string" && message.trim()) return message.trim();
+  } catch {
+    // The provider can return plain text.
+  }
+  return body.slice(0, 300) || "پاسخی از سرویس دریافت نشد.";
+}
+
+async function firecrawlRequest(payload: Record<string, unknown>, label: string) {
+  await waitForFirecrawlSlot();
+  const response = await fetch(`${GATEWAY}/scrape`, {
+    method: "POST",
+    headers: gatewayHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const body = await response.text();
+  if (!response.ok) {
+    throw new FirecrawlRequestError(
+      response.status,
+      `${label} [${response.status}]: ${providerMessage(body)}`,
+      retryAfterSeconds(response, body),
+    );
+  }
+  return JSON.parse(body) as Record<string, unknown>;
+}
 
 function gatewayHeaders() {
   const lovableKey = process.env["LOVABLE_API_KEY"];
@@ -12,14 +86,10 @@ function gatewayHeaders() {
 }
 
 export async function firecrawlScrapeLinks(url: string): Promise<string[]> {
-  const res = await fetch(`${GATEWAY}/scrape`, {
-    method: "POST",
-    headers: gatewayHeaders(),
-    body: JSON.stringify({ url, formats: ["links"], onlyMainContent: true }),
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`خطای کشف صفحات [${res.status}]: ${body.slice(0, 300)}`);
-  const json = JSON.parse(body) as { links?: string[]; data?: { links?: string[] } };
+  const json = (await firecrawlRequest(
+    { url, formats: ["links"], onlyMainContent: true },
+    "خطای کشف صفحات",
+  )) as { links?: string[]; data?: { links?: string[] } };
   return (json.links ?? json.data?.links ?? []).filter((l) => typeof l === "string");
 }
 
@@ -35,14 +105,10 @@ function absolutize(src: string, base: string): string | null {
 }
 
 export async function firecrawlScrape(url: string): Promise<{ markdown: string; images: string[] }> {
-  const res = await fetch(`${GATEWAY}/scrape`, {
-    method: "POST",
-    headers: gatewayHeaders(),
-    body: JSON.stringify({ url, formats: ["markdown", "html"], onlyMainContent: false }),
-  });
-  const body = await res.text();
-  if (!res.ok) throw new Error(`خطای خواندن صفحه [${res.status}]: ${body.slice(0, 300)}`);
-  const json = JSON.parse(body) as Record<string, unknown>;
+  const json = await firecrawlRequest(
+    { url, formats: ["markdown", "html"], onlyMainContent: false },
+    "خطای خواندن صفحه",
+  );
   const d = ((json["data"] as Record<string, unknown>) ?? json) as {
     markdown?: string;
     html?: string;

@@ -8,6 +8,7 @@ import { toFa } from "@/lib/fa";
 const stateLabel: Record<ImporterRow["state"], string> = {
   idle: "در انتظار",
   running: "در حال بررسی…",
+  waiting: "محدودیت موقت سرویس",
   imported: "افزوده شد",
   duplicate: "تکراری",
   skipped: "نادیده گرفته شد",

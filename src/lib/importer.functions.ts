@@ -1,16 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (error || !data) throw new Error("دسترسی مجاز نیست.");
-}
-
 export const discoverCases = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { url: string; limit?: number }) => {
@@ -19,8 +9,8 @@ export const discoverCases = createServerFn({ method: "POST" })
     return { url, limit: Math.min(Math.max(input.limit ?? 60, 1), 200) };
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { firecrawlScrapeLinks } = await import("./importer.server");
+    const { assertImporterAdmin, firecrawlScrapeLinks } = await import("./importer.server");
+    await assertImporterAdmin(context.supabase, context.userId);
 
     const base = new URL(data.url);
     const listingLinks = await firecrawlScrapeLinks(data.url);
@@ -80,10 +70,26 @@ export const importCase = createServerFn({ method: "POST" })
     return { url };
   })
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
-    const { firecrawlScrape, extractCase, uploadPoster } = await import("./importer.server");
+    const { assertImporterAdmin, firecrawlScrape, extractCase, uploadPoster, FirecrawlRequestError } =
+      await import("./importer.server");
+    await assertImporterAdmin(context.supabase, context.userId);
 
-    const { markdown, images } = await firecrawlScrape(data.url);
+    let markdown: string;
+    let images: string[];
+    try {
+      ({ markdown, images } = await firecrawlScrape(data.url));
+    } catch (error) {
+      if (error instanceof FirecrawlRequestError) {
+        const retryable = error.status === 429 || error.status >= 500;
+        return {
+          status: "provider_error" as const,
+          reason: error.message,
+          title: null,
+          retryAfterSeconds: retryable ? (error.retryAfterSeconds ?? 8) : null,
+        };
+      }
+      throw error;
+    }
     if (!markdown || markdown.length < 80) {
       return { status: "skipped" as const, reason: "محتوای صفحه خالی بود", title: null };
     }
