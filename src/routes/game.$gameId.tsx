@@ -207,13 +207,23 @@ function GamePage() {
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
 
-  const reportReview = async (reviewId: string) => {
+  const openReport = (reviewId: string) => {
     if (!user) { needLogin(); return; }
+    setReportFor(reviewId);
+    setReportReason("");
+  };
+
+  const submitReport = async () => {
+    if (!user || !reportFor) return;
+    const reason = reportReason.trim();
+    if (reason.length < 3) { toast.error("لطفاً دلیل گزارش را بنویسید"); return; }
     const { error } = await supabase
       .from("review_reports")
-      .insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+      .insert({ review_id: reportFor, user_id: user.id, reason });
     if (error) { toast.error("ثبت گزارش ناموفق بود"); return; }
-    toast.success("گزارش شما ثبت شد");
+    toast.success("گزارش شما ثبت شد و توسط مدیران بررسی می‌شود");
+    setReportFor(null);
+    setReportReason("");
   };
 
 
