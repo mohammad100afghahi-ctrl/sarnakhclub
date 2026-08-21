@@ -178,7 +178,7 @@ function AdminPage() {
       const res = await fetch(url);
       if (!res.ok) throw new Error("failed");
       const blob = await res.blob();
-      const ext = (url.split("?")[0].split(".").pop() ?? "jpg").slice(0, 5);
+      const ext = ((url.split("?")[0] ?? "").split(".").pop() || "jpg").slice(0, 5);
       const href = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = href;
