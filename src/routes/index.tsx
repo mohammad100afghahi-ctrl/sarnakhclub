@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Flame, Sparkles, Trophy } from "lucide-react";
+import { ArrowLeft, Flame, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { GameCard, GameCardSkeleton, type GameCardData } from "@/components/GameCard";
 import { Button } from "@/components/ui/button";
-import { faNum } from "@/lib/fa";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -101,22 +101,6 @@ function Index() {
 
       <Section title="تازه‌ترین پرونده‌ها" icon={<Sparkles className="h-5 w-5" />} games={newest} loading={isLoading} />
       <Section title="پرمخاطب‌ترین‌ها این هفته" icon={<Flame className="h-5 w-5" />} games={popular} loading={isLoading} />
-
-      <section className="flex flex-col items-start gap-3 rounded-2xl surface-case p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="flex items-center gap-2 text-lg font-extrabold">
-            <Trophy className="h-5 w-5 text-primary" />
-            رتبه‌بندی منصفانه
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            امتیازها با میانگین وزنی بیزی محاسبه می‌شوند؛ در حال حاضر {faNum(games.length)} پرونده در آرشیو ثبت شده
-            است.
-          </p>
-        </div>
-        <Link to="/ranking">
-          <Button variant="secondary">ورود به جدول رتبه‌بندی</Button>
-        </Link>
-      </section>
     </div>
   );
 }
