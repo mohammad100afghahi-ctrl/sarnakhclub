@@ -277,6 +277,22 @@ function GamePage() {
     setReportReason("");
   };
 
+  const submitInfoReport = async () => {
+    if (!user) { needLogin(); return; }
+    const text = infoText.trim();
+    if (text.length < 3) { toast.error("لطفاً توضیح دهید کدام اطلاعات نادرست است"); return; }
+    const title = (game as unknown as { title?: string } | null)?.title ?? "";
+    const { error } = await supabase.from("feedback").insert({
+      user_id: user.id,
+      kind: "game_info",
+      message: `پرونده: ${title}\nلینک: /game/${gameId}\n\n${text}`,
+    });
+    if (error) { toast.error("ثبت گزارش ناموفق بود"); return; }
+    toast.success("گزارش شما ثبت شد و توسط مدیران بررسی می‌شود");
+    setInfoOpen(false);
+    setInfoText("");
+  };
+
 
   if (isLoading) {
     return (
