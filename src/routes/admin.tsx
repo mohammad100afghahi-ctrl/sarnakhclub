@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "پنل مدیریت | آرشیو پرونده" },
-      { name: "description", content: "مدیریت پیشنهادهای بازی، برچسب‌ها، گزارش نظرها و تنظیمات رتبه‌بندی." },
+      { name: "description", content: "مدیریت پیشنهادهای بازی، گزارش نظرها و تنظیمات رتبه‌بندی." },
       { property: "og:title", content: "پنل مدیریت | آرشیو پرونده" },
       { property: "og:description", content: "ابزارهای مدیریتی آرشیو پرونده." },
       { name: "robots", content: "noindex" },
@@ -38,15 +38,6 @@ function AdminPage() {
         .from("game_suggestions")
         .select("*")
         .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
-
-  const { data: tags } = useQuery({
-    queryKey: ["admin-tags"],
-    enabled: isAdmin,
-    queryFn: async () => {
-      const { data } = await supabase.from("tags").select("*").order("created_at", { ascending: false });
       return data ?? [];
     },
   });
@@ -92,7 +83,6 @@ function AdminPage() {
     description: string | null;
     creator_studio: string | null;
     release_year: number | null;
-    platforms: string[] | null;
     poster_url: string | null;
   }) => {
     setDraft({
@@ -101,20 +91,10 @@ function AdminPage() {
       description: s.description ?? "",
       creator_studio: s.creator_studio ?? "",
       release_year: s.release_year ? String(s.release_year) : "",
-      platforms: (s.platforms ?? []).join("، "),
       poster_url: s.poster_url ?? "",
     });
     setTab("games");
     toast.info("اطلاعات پیشنهاد در فرم پرونده بارگذاری شد");
-  };
-
-  const setTagStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("tags").update({ status }).eq("id", id);
-    if (error) {
-      toast.error("به‌روزرسانی برچسب ناموفق بود");
-      return;
-    }
-    qc.invalidateQueries({ queryKey: ["admin-tags"] });
   };
 
   const saveM = async () => {
@@ -160,7 +140,6 @@ function AdminPage() {
         <TabsList className="w-full">
           <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
-          <TabsTrigger value="tags" className="flex-1">برچسب‌ها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
         </TabsList>
@@ -186,20 +165,6 @@ function AdminPage() {
             </div>
           ))}
           {!suggestions?.length && <p className="text-sm text-muted-foreground">پیشنهادی ثبت نشده است.</p>}
-        </TabsContent>
-
-        <TabsContent value="tags" className="space-y-2 pt-4">
-          {(tags ?? []).map((t) => (
-            <div key={t.id} className="flex items-center justify-between rounded-xl surface-case p-4 text-sm">
-              <span>{t.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">{t.status}</span>
-                <Button size="sm" onClick={() => setTagStatus(t.id, "approved")}>تایید</Button>
-                <Button size="sm" variant="secondary" onClick={() => setTagStatus(t.id, "rejected")}>رد</Button>
-              </div>
-            </div>
-          ))}
-          {!tags?.length && <p className="text-sm text-muted-foreground">برچسبی ثبت نشده است.</p>}
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-2 pt-4">

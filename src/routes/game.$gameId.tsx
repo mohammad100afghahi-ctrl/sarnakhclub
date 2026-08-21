@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Tag as TagIcon } from "lucide-react";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GameCard, type GameCardData } from "@/components/GameCard";
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/game/$gameId")({
   head: () => ({
     meta: [
       { title: "پرونده بازی | آرشیو پرونده" },
-      { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران، پلتفرم، ژانر و پرونده‌های مشابه." },
+      { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران و پرونده‌های مشابه." },
       { property: "og:title", content: "پرونده بازی | آرشیو پرونده" },
       { property: "og:description", content: "امتیاز میانگین، نقد کاربران و اطلاعات کامل بازی‌های معمایی." },
     ],
@@ -46,7 +45,6 @@ function GamePage() {
   const [reviewText, setReviewText] = useState("");
   const [spoiler, setSpoiler] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
 
   const { data: game, isLoading } = useQuery({
     queryKey: ["game", gameId],
@@ -58,13 +56,10 @@ function GamePage() {
   });
 
   const { data: similar } = useQuery({
-    queryKey: ["similar", gameId, (game as { genres?: string[] } | null)?.genres?.[0]],
+    queryKey: ["similar", gameId],
     enabled: !!game,
     queryFn: async () => {
-      const genre = (game as unknown as { genres: string[] }).genres?.[0];
-      let q = supabase.from("game_rankings").select("*").neq("id", gameId).limit(5);
-      if (genre) q = q.contains("genres", [genre]);
-      const { data } = await q;
+      const { data } = await supabase.from("game_rankings").select("*").neq("id", gameId).limit(5);
       return (data ?? []) as unknown as GameCardData[];
     },
   });
@@ -106,14 +101,6 @@ function GamePage() {
         .eq("user_id", user!.id)
         .maybeSingle();
       return !!data;
-    },
-  });
-
-  const { data: gameTags } = useQuery({
-    queryKey: ["game-tags", gameId],
-    queryFn: async () => {
-      const { data } = await supabase.from("game_tags").select("tags(name, status)").eq("game_id", gameId);
-      return (data ?? []) as unknown as { tags: { name: string; status: string } | null }[];
     },
   });
 
@@ -177,29 +164,6 @@ function GamePage() {
     toast.success("گزارش شما ثبت شد");
   };
 
-  const addTag = async () => {
-    if (!user) { needLogin(); return; }
-    const name = newTag.trim();
-    if (name.length < 2 || name.length > 30) {
-      toast.error("برچسب باید بین ۲ تا ۳۰ کاراکتر باشد");
-      return;
-    }
-    const { data: existing } = await supabase.from("tags").select("id").eq("name", name).maybeSingle();
-    let tagId = existing?.id;
-    if (!tagId) {
-      const { data, error } = await supabase.from("tags").insert({ name, created_by: user.id }).select("id").single();
-      if (error) {
-        toast.error("ثبت برچسب ناموفق بود");
-        return;
-      }
-      tagId = data.id;
-    }
-    await supabase.from("game_tags").insert({ game_id: gameId, tag_id: tagId, created_by: user.id });
-    setNewTag("");
-    toast.success("برچسب ثبت شد و پس از تایید ادمین در فیلترها نمایش داده می‌شود");
-    qc.invalidateQueries({ queryKey: ["game-tags"] });
-  };
-
   if (isLoading) {
     return (
       <div className="mx-auto grid max-w-5xl gap-6 px-4 py-8 sm:grid-cols-[240px_minmax(0,1fr)]">
@@ -222,8 +186,6 @@ function GamePage() {
     description: string;
     creator_studio: string | null;
     release_year: number | null;
-    platforms: string[];
-    genres: string[];
     min_players: number | null;
     max_players: number | null;
     age_rating: string | null;
@@ -287,39 +249,13 @@ function GamePage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <Info label="پلتفرم" value={g.platforms?.join("، ") || "—"} />
             <Info label="تعداد بازیکن" value={`${toFa(g.min_players ?? "?")} تا ${toFa(g.max_players ?? "?")}`} />
             <Info label="رده سنی" value={g.age_rating ?? "—"} />
             <Info label="مدت بازی" value={faDuration(g.duration_minutes)} />
-            <Info label="ژانر" value={g.genres?.join("، ") || "—"} />
           </div>
 
           <p className="leading-8 text-muted-foreground">{g.description}</p>
 
-          <div className="space-y-2">
-            <p className="flex items-center gap-2 text-sm font-bold">
-              <TagIcon className="h-4 w-4 text-primary" /> برچسب‌ها
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              {(gameTags ?? []).map((t, i) => (
-                <Badge key={i} variant={t.tags?.status === "approved" ? "secondary" : "outline"}>
-                  {t.tags?.name}
-                  {t.tags?.status !== "approved" ? " (در انتظار تایید)" : ""}
-                </Badge>
-              ))}
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="برچسب جدید"
-                  className="h-8 w-36"
-                />
-                <Button size="sm" variant="secondary" onClick={addTag}>
-                  افزودن
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
