@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { discoverCases, importCase } from "@/lib/importer.functions";
 
 export type ImporterRow = {
@@ -77,6 +78,7 @@ export const importerStore = {
       }
     }
     set({ running: false });
+    toast.success("استخراج تمام شد. نتایج در تب «پیشنهادها» است.");
   },
   reset() {
     if (state.running) return;
