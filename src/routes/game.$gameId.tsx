@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff } from "lucide-react";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,7 +39,7 @@ type Review = {
 
 function GamePage() {
   const { gameId } = Route.useParams();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const qc = useQueryClient();
   const [sort, setSort] = useState("popular");
   const [reviewText, setReviewText] = useState("");
@@ -67,14 +67,38 @@ function GamePage() {
   const { data: reviews } = useQuery({
     queryKey: ["reviews", gameId, sort],
     queryFn: async () => {
-      const q = supabase.from("reviews").select("*, profiles(username, avatar_url)").eq("game_id", gameId);
-      const { data } =
+      const q = supabase.from("reviews").select("*").eq("game_id", gameId);
+      const { data, error } =
         sort === "popular"
           ? await q.order("helpful_count", { ascending: false })
           : await q.order("created_at", { ascending: false });
-      return (data ?? []) as unknown as Review[];
+      if (error) throw error;
+      const rows = (data ?? []) as unknown as Review[];
+      const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", ids);
+        const map = new Map((profs ?? []).map((p) => [p.id, p]));
+        rows.forEach((r) => {
+          const p = map.get(r.user_id);
+          r.profiles = p ? { username: p.username, avatar_url: p.avatar_url } : null;
+        });
+      }
+      return rows;
     },
   });
+
+  const { data: myVotes } = useQuery({
+    queryKey: ["my-review-votes", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("review_votes").select("review_id, vote_type").eq("user_id", user!.id);
+      return Object.fromEntries((data ?? []).map((v) => [v.review_id, v.vote_type])) as Record<string, string>;
+    },
+  });
+
 
   const { data: myRating } = useQuery({
     queryKey: ["my-rating", gameId, user?.id],
@@ -152,17 +176,34 @@ function GamePage() {
 
   const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
     if (!user) { needLogin(); return; }
-    await supabase
-      .from("review_votes")
-      .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
+    if (myVotes?.[reviewId] === type) {
+      await supabase.from("review_votes").delete().eq("review_id", reviewId).eq("user_id", user.id);
+    } else {
+      const { error } = await supabase
+        .from("review_votes")
+        .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
+      if (error) { toast.error("ثبت رای ناموفق بود"); return; }
+    }
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+    qc.invalidateQueries({ queryKey: ["my-review-votes"] });
+  };
+
+  const deleteReview = async (reviewId: string) => {
+    const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+    if (error) { toast.error("حذف نظر ناموفق بود"); return; }
+    toast.success("نظر حذف شد");
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
 
   const reportReview = async (reviewId: string) => {
     if (!user) { needLogin(); return; }
-    await supabase.from("review_reports").insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+    const { error } = await supabase
+      .from("review_reports")
+      .insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+    if (error) { toast.error("ثبت گزارش ناموفق بود"); return; }
     toast.success("گزارش شما ثبت شد");
   };
+
 
   if (isLoading) {
     return (
@@ -306,16 +347,37 @@ function GamePage() {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "helpful")}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={`gap-1 ${myVotes?.[r.id] === "helpful" ? "text-primary" : ""}`}
+                  onClick={() => voteReview(r.id, "helpful")}
+                >
                   <ThumbsUp className="h-4 w-4" /> {faNum(r.helpful_count)}
                 </Button>
-                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "unhelpful")}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={`gap-1 ${myVotes?.[r.id] === "unhelpful" ? "text-destructive" : ""}`}
+                  onClick={() => voteReview(r.id, "unhelpful")}
+                >
                   <ThumbsDown className="h-4 w-4" /> {faNum(r.unhelpful_count)}
                 </Button>
                 <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => reportReview(r.id)}>
                   <Flag className="h-4 w-4" /> گزارش
                 </Button>
+                {(isAdmin || r.user_id === user?.id) && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1 text-destructive"
+                    onClick={() => deleteReview(r.id)}
+                  >
+                    <Trash2 className="h-4 w-4" /> حذف
+                  </Button>
+                )}
               </div>
+
             </article>
           );
         })}
