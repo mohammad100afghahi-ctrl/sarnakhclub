@@ -45,6 +45,7 @@ function GamePage() {
   const [reviewText, setReviewText] = useState("");
   const [spoiler, setSpoiler] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
 
   const { data: game, isLoading } = useQuery({
     queryKey: ["game", gameId],
