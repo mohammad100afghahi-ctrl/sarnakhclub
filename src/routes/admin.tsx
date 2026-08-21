@@ -206,7 +206,16 @@ function AdminPage() {
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
+          {isPrimaryAdmin && (
+            <TabsTrigger value="admins" className="flex-1">مدیران</TabsTrigger>
+          )}
         </TabsList>
+
+        {isPrimaryAdmin && (
+          <TabsContent value="admins" className="pt-4">
+            <AdminsManager />
+          </TabsContent>
+        )}
 
         <TabsContent value="games" className="pt-4">
           <GamesManager draft={draft} setDraft={setDraft} userId={user.id} />
