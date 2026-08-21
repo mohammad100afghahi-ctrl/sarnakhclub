@@ -183,16 +183,14 @@ export function GamesManager({
             <Input value={draft.creator_studio} onChange={(e) => set("creator_studio", e.target.value)} />
           </Field>
           <Field label="رده سنی (فقط عدد)">
+            <Input value={draft.age_rating} onChange={(e) => set("age_rating", onlyDigits(e.target.value))} inputMode="numeric" placeholder="۱۲" />
+          </Field>
+          <Field label="تعداد بازیکن">
             <div className="flex items-center gap-2">
-              <Input value={draft.age_rating} onChange={(e) => set("age_rating", onlyDigits(e.target.value))} inputMode="numeric" placeholder="۱۲" />
-              <span className="text-sm text-muted-foreground">+</span>
+              <Input value={draft.min_players} onChange={(e) => set("min_players", onlyDigits(e.target.value))} inputMode="numeric" placeholder="حداقل" />
+              <span className="text-xs text-muted-foreground">تا</span>
+              <Input value={draft.max_players} onChange={(e) => set("max_players", onlyDigits(e.target.value))} inputMode="numeric" placeholder="حداکثر" />
             </div>
-          </Field>
-          <Field label="حداقل بازیکن">
-            <Input value={draft.min_players} onChange={(e) => set("min_players", onlyDigits(e.target.value))} inputMode="numeric" />
-          </Field>
-          <Field label="حداکثر بازیکن">
-            <Input value={draft.max_players} onChange={(e) => set("max_players", onlyDigits(e.target.value))} inputMode="numeric" />
           </Field>
           <Field label="مدت زمان (دقیقه)">
             <div className="flex items-center gap-2">
