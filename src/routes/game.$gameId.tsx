@@ -45,6 +45,7 @@ function GamePage() {
   const [reviewText, setReviewText] = useState("");
   const [spoiler, setSpoiler] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
 
   const { data: game, isLoading } = useQuery({
     queryKey: ["game", gameId],
@@ -151,6 +152,15 @@ function GamePage() {
     toast.success(inWishlist ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها اضافه شد");
   };
 
+  const myReview = (reviews ?? []).find((r) => r.user_id === user?.id) ?? null;
+
+  const startEdit = () => {
+    if (!myReview) return;
+    setReviewText(myReview.text);
+    setSpoiler(myReview.is_spoiler);
+    setEditing(true);
+  };
+
   const submitReview = async () => {
     if (!user) { needLogin(); return; }
     const text = reviewText.trim();
@@ -158,21 +168,23 @@ function GamePage() {
       toast.error("متن نظر باید بین ۳ تا ۲۰۰۰ کاراکتر باشد");
       return;
     }
-    const { error } = await supabase.from("reviews").insert({
-      user_id: user.id,
-      game_id: gameId,
-      text,
-      is_spoiler: spoiler,
-    });
+    const { error } = await supabase
+      .from("reviews")
+      .upsert(
+        { user_id: user.id, game_id: gameId, text, is_spoiler: spoiler },
+        { onConflict: "user_id,game_id" },
+      );
     if (error) {
       toast.error("ثبت نظر ناموفق بود");
       return;
     }
     setReviewText("");
     setSpoiler(false);
-    toast.success("نظر شما ثبت شد");
+    setEditing(false);
+    toast.success(myReview ? "نظر شما ویرایش شد" : "نظر شما ثبت شد");
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
+
 
   const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
     if (!user) { needLogin(); return; }
@@ -311,21 +323,39 @@ function GamePage() {
           </Tabs>
         </div>
 
-        <div className="space-y-3 rounded-xl surface-case p-4">
-          <Textarea
-            rows={3}
-            value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            placeholder="نظر خود را درباره این پرونده بنویسید…"
-          />
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={spoiler} onCheckedChange={(c) => setSpoiler(!!c)} />
-              این نظر حاوی اسپویلر است
-            </label>
-            <Button onClick={submitReview}>ثبت نظر</Button>
+        {myReview && !editing ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4">
+            <p className="text-sm text-muted-foreground">شما برای این پرونده یک نظر ثبت کرده‌اید.</p>
+            <Button variant="outline" onClick={startEdit}>ویرایش نظر من</Button>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3 rounded-xl surface-case p-4">
+            <Textarea
+              rows={3}
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="نظر خود را درباره این پرونده بنویسید…"
+            />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox checked={spoiler} onCheckedChange={(c) => setSpoiler(!!c)} />
+                این نظر حاوی اسپویلر است
+              </label>
+              <div className="flex gap-2">
+                {editing && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => { setEditing(false); setReviewText(""); setSpoiler(false); }}
+                  >
+                    انصراف
+                  </Button>
+                )}
+                <Button onClick={submitReview}>{editing ? "ذخیره ویرایش" : "ثبت نظر"}</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {(reviews ?? []).map((r) => {
           const hidden = r.is_spoiler && !revealed.includes(r.id);
