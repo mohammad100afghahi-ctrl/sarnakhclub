@@ -178,8 +178,9 @@ function AdminPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">{s.description}</p>
               </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => buildFromSuggestion(s)}>ساخت پرونده از این پیشنهاد</Button>
+                <Button size="sm" variant="outline" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
                 <Button size="sm" variant="secondary" onClick={() => setSuggestionStatus(s.id, "rejected")}>رد</Button>
               </div>
             </div>
