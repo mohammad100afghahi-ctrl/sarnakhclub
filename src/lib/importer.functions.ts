@@ -20,19 +20,57 @@ export const discoverCases = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { firecrawlMap } = await import("./importer.server");
-    const links = await firecrawlMap(data.url, data.limit);
+    const { firecrawlScrapeLinks } = await import("./importer.server");
+
     const base = new URL(data.url);
-    const unique = Array.from(new Set(links)).filter((l) => {
+    const listingLinks = await firecrawlScrapeLinks(data.url);
+
+    const sameHost = (l: string): URL | null => {
       try {
-        const u = new URL(l);
-        return u.hostname === base.hostname && u.pathname !== base.pathname;
+        const u = new URL(l, base);
+        return u.hostname === base.hostname ? u : null;
       } catch {
-        return false;
+        return null;
       }
-    });
-    return { links: unique.slice(0, data.limit) };
+    };
+
+    // صفحات بعدی همان دسته‌بندی
+    const pageUrls = new Set<string>([base.href.split("#")[0] as string]);
+    for (const l of listingLinks) {
+      const u = sameHost(l);
+      if (u && /\/page-\d+$/.test(u.pathname) && u.pathname.startsWith(base.pathname)) {
+        pageUrls.add(u.href);
+      }
+    }
+
+    const allLinks = [...listingLinks];
+    for (const page of Array.from(pageUrls).slice(1, 10)) {
+      try {
+        allLinks.push(...(await firecrawlScrapeLinks(page)));
+      } catch {
+        /* از این صفحه می‌گذریم */
+      }
+    }
+
+    const excluded = /\/(account|signin|login|register|cart|basket|favorites|contact|about|blog|group-comment|products\/category)\b/i;
+    const candidates = new Set<string>();
+    for (const l of allLinks) {
+      const u = sameHost(l);
+      if (!u) continue;
+      u.hash = "";
+      const href = u.href;
+      if (pageUrls.has(href) || u.pathname === base.pathname) continue;
+      if (excluded.test(u.pathname)) continue;
+      if (u.pathname === "/" || u.pathname.length < 6) continue;
+      candidates.add(href);
+    }
+
+    const list = Array.from(candidates);
+    const productish = list.filter((l) => /product|item|game|kala|shop/i.test(l));
+    const links = (productish.length > 0 ? productish : list).slice(0, data.limit);
+    return { links };
   });
+
 
 export const importCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
