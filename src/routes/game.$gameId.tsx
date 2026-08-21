@@ -154,6 +154,28 @@ function GamePage() {
     qc.invalidateQueries();
   };
 
+  const { data: played } = useQuery({
+    queryKey: ["played", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("played_games")
+        .select("game_id")
+        .eq("game_id", gameId)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
+  const togglePlayed = async () => {
+    if (!user) { needLogin(); return; }
+    if (played) await supabase.from("played_games").delete().eq("user_id", user.id).eq("game_id", gameId);
+    else await supabase.from("played_games").insert({ user_id: user.id, game_id: gameId });
+    qc.invalidateQueries({ queryKey: ["played"] });
+    toast.success(played ? "از لیست انجام‌شده‌ها حذف شد" : "به لیست انجام‌شده‌ها اضافه شد");
+  };
+
   const toggleWishlist = async () => {
     if (!user) { needLogin(); return; }
     if (inWishlist) await supabase.from("wishlist").delete().eq("user_id", user.id).eq("game_id", gameId);
@@ -161,6 +183,7 @@ function GamePage() {
     qc.invalidateQueries({ queryKey: ["wishlist"] });
     toast.success(inWishlist ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها اضافه شد");
   };
+
 
   const myReview = (reviews ?? []).find((r) => r.user_id === user?.id) ?? null;
 
