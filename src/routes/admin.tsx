@@ -239,11 +239,13 @@ function AdminPage() {
             <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4 text-sm">
               <div className="flex items-start gap-3">
                 {s.poster_url && (
-                  <img
-                    src={s.poster_url}
-                    alt={s.title}
-                    className="h-20 w-14 shrink-0 rounded-md object-cover"
-                  />
+                  <a href={s.poster_url} target="_blank" rel="noreferrer" className="shrink-0">
+                    <img
+                      src={s.poster_url}
+                      alt={s.title}
+                      className="h-20 w-14 rounded-md object-cover"
+                    />
+                  </a>
                 )}
                 <div>
                   <p className="font-bold">
@@ -253,6 +255,15 @@ function AdminPage() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
+                {s.poster_url && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadImage(s.poster_url!, s.title)}
+                  >
+                    دانلود تصویر
+                  </Button>
+                )}
                 <Button size="sm" onClick={() => buildFromSuggestion(s)}>ساخت پرونده از این پیشنهاد</Button>
                 <Button size="sm" variant="outline" onClick={() => setSuggestionStatus(s.id, "approved")}>تایید</Button>
                 <Button size="sm" variant="secondary" onClick={() => deleteSuggestion(s.id)}>رد</Button>
