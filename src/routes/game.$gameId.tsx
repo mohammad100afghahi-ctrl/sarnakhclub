@@ -151,6 +151,15 @@ function GamePage() {
     toast.success(inWishlist ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها اضافه شد");
   };
 
+  const myReview = (reviews ?? []).find((r) => r.user_id === user?.id) ?? null;
+
+  const startEdit = () => {
+    if (!myReview) return;
+    setReviewText(myReview.text);
+    setSpoiler(myReview.is_spoiler);
+    setEditing(true);
+  };
+
   const submitReview = async () => {
     if (!user) { needLogin(); return; }
     const text = reviewText.trim();
@@ -158,21 +167,23 @@ function GamePage() {
       toast.error("متن نظر باید بین ۳ تا ۲۰۰۰ کاراکتر باشد");
       return;
     }
-    const { error } = await supabase.from("reviews").insert({
-      user_id: user.id,
-      game_id: gameId,
-      text,
-      is_spoiler: spoiler,
-    });
+    const { error } = await supabase
+      .from("reviews")
+      .upsert(
+        { user_id: user.id, game_id: gameId, text, is_spoiler: spoiler },
+        { onConflict: "user_id,game_id" },
+      );
     if (error) {
       toast.error("ثبت نظر ناموفق بود");
       return;
     }
     setReviewText("");
     setSpoiler(false);
-    toast.success("نظر شما ثبت شد");
+    setEditing(false);
+    toast.success(myReview ? "نظر شما ویرایش شد" : "نظر شما ثبت شد");
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
+
 
   const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
     if (!user) { needLogin(); return; }
