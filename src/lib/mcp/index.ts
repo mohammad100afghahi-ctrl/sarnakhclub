@@ -18,5 +18,7 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
-  tools: [searchGames, getGame, topCases, rateGame, markPlayed, myLists],
+  tools: [searchGames, getGame, topCases, rateGame, markPlayed, myLists] as unknown as Parameters<
+    typeof defineMcp
+  >[0]["tools"],
 });
