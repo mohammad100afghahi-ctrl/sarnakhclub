@@ -176,17 +176,34 @@ function GamePage() {
 
   const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
     if (!user) { needLogin(); return; }
-    await supabase
-      .from("review_votes")
-      .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
+    if (myVotes?.[reviewId] === type) {
+      await supabase.from("review_votes").delete().eq("review_id", reviewId).eq("user_id", user.id);
+    } else {
+      const { error } = await supabase
+        .from("review_votes")
+        .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
+      if (error) { toast.error("ثبت رای ناموفق بود"); return; }
+    }
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+    qc.invalidateQueries({ queryKey: ["my-review-votes"] });
+  };
+
+  const deleteReview = async (reviewId: string) => {
+    const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+    if (error) { toast.error("حذف نظر ناموفق بود"); return; }
+    toast.success("نظر حذف شد");
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
 
   const reportReview = async (reviewId: string) => {
     if (!user) { needLogin(); return; }
-    await supabase.from("review_reports").insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+    const { error } = await supabase
+      .from("review_reports")
+      .insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+    if (error) { toast.error("ثبت گزارش ناموفق بود"); return; }
     toast.success("گزارش شما ثبت شد");
   };
+
 
   if (isLoading) {
     return (
