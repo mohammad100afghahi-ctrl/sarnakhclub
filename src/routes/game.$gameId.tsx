@@ -352,7 +352,6 @@ function GamePage() {
               >
                 <span className="text-muted-foreground">رتبه فعلی: </span>
                 <span className="text-base font-black text-primary">{toFa(rankInfo.rank)}</span>
-                <span className="text-muted-foreground"> از {toFa(rankInfo.total)}</span>
               </Link>
             )}
 

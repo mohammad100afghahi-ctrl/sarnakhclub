@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { faDate, toFa } from "@/lib/fa";
 import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
+import { AdminsManager } from "@/components/admin/AdminsManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -30,6 +31,16 @@ function AdminPage() {
   const [tab, setTab] = useState("games");
   const [draft, setDraft] = useState<GameDraft>(emptyDraft);
   const [reportFilter, setReportFilter] = useState<"open" | "resolved" | "dismissed" | "all">("open");
+
+  const { data: primaryAdminId } = useQuery({
+    queryKey: ["primary-admin"],
+    enabled: isAdmin,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("primary_admin_id");
+      return (data as string | null) ?? null;
+    },
+  });
+  const isPrimaryAdmin = !!user && !!primaryAdminId && user.id === primaryAdminId;
 
   const { data: suggestions } = useQuery({
     queryKey: ["admin-suggestions"],
@@ -206,7 +217,16 @@ function AdminPage() {
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
+          {isPrimaryAdmin && (
+            <TabsTrigger value="admins" className="flex-1">مدیران</TabsTrigger>
+          )}
         </TabsList>
+
+        {isPrimaryAdmin && (
+          <TabsContent value="admins" className="pt-4">
+            <AdminsManager />
+          </TabsContent>
+        )}
 
         <TabsContent value="games" className="pt-4">
           <GamesManager draft={draft} setDraft={setDraft} userId={user.id} />

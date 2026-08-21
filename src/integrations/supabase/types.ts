@@ -510,6 +510,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_primary_admin: { Args: { _user_id: string }; Returns: boolean }
+      primary_admin_id: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
