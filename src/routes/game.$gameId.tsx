@@ -1,0 +1,420 @@
+import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Tag as TagIcon } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GameCard, type GameCardData } from "@/components/GameCard";
+import { faDate, faDuration, faNum, toFa } from "@/lib/fa";
+
+export const Route = createFileRoute("/game/$gameId")({
+  head: () => ({
+    meta: [
+      { title: "پرونده بازی | آرشیو پرونده" },
+      { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران، پلتفرم، ژانر و پرونده‌های مشابه." },
+      { property: "og:title", content: "پرونده بازی | آرشیو پرونده" },
+      { property: "og:description", content: "امتیاز میانگین، نقد کاربران و اطلاعات کامل بازی‌های معمایی." },
+    ],
+  }),
+  component: GamePage,
+});
+
+type Review = {
+  id: string;
+  user_id: string;
+  text: string;
+  is_spoiler: boolean;
+  helpful_count: number;
+  unhelpful_count: number;
+  created_at: string;
+  profiles?: { username: string; avatar_url: string | null } | null;
+};
+
+function GamePage() {
+  const { gameId } = Route.useParams();
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const [sort, setSort] = useState("popular");
+  const [reviewText, setReviewText] = useState("");
+  const [spoiler, setSpoiler] = useState(false);
+  const [revealed, setRevealed] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+
+  const { data: game, isLoading } = useQuery({
+    queryKey: ["game", gameId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("game_rankings").select("*").eq("id", gameId).maybeSingle();
+      if (error) throw error;
+      return data as Record<string, never> | null;
+    },
+  });
+
+  const { data: similar } = useQuery({
+    queryKey: ["similar", gameId, (game as { genres?: string[] } | null)?.genres?.[0]],
+    enabled: !!game,
+    queryFn: async () => {
+      const genre = (game as unknown as { genres: string[] }).genres?.[0];
+      let q = supabase.from("game_rankings").select("*").neq("id", gameId).limit(5);
+      if (genre) q = q.contains("genres", [genre]);
+      const { data } = await q;
+      return (data ?? []) as unknown as GameCardData[];
+    },
+  });
+
+  const { data: reviews } = useQuery({
+    queryKey: ["reviews", gameId, sort],
+    queryFn: async () => {
+      const q = supabase.from("reviews").select("*, profiles(username, avatar_url)").eq("game_id", gameId);
+      const { data } =
+        sort === "popular"
+          ? await q.order("helpful_count", { ascending: false })
+          : await q.order("created_at", { ascending: false });
+      return (data ?? []) as unknown as Review[];
+    },
+  });
+
+  const { data: myRating } = useQuery({
+    queryKey: ["my-rating", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ratings")
+        .select("score")
+        .eq("game_id", gameId)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data?.score ?? null;
+    },
+  });
+
+  const { data: inWishlist } = useQuery({
+    queryKey: ["wishlist", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wishlist")
+        .select("game_id")
+        .eq("game_id", gameId)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
+  const { data: gameTags } = useQuery({
+    queryKey: ["game-tags", gameId],
+    queryFn: async () => {
+      const { data } = await supabase.from("game_tags").select("tags(name, status)").eq("game_id", gameId);
+      return (data ?? []) as unknown as { tags: { name: string; status: string } | null }[];
+    },
+  });
+
+  const needLogin = () => toast.error("برای این کار باید وارد حساب خود شوید");
+
+  const rate = async (score: number) => {
+    if (!user) return needLogin();
+    const { error } = await supabase
+      .from("ratings")
+      .upsert({ user_id: user.id, game_id: gameId, score }, { onConflict: "user_id,game_id" });
+    if (error) {
+      toast.error("ثبت امتیاز ناموفق بود");
+      return;
+    }
+    toast.success(`امتیاز ${toFa(score)} ثبت شد`);
+    qc.invalidateQueries();
+  };
+
+  const toggleWishlist = async () => {
+    if (!user) return needLogin();
+    if (inWishlist) await supabase.from("wishlist").delete().eq("user_id", user.id).eq("game_id", gameId);
+    else await supabase.from("wishlist").insert({ user_id: user.id, game_id: gameId });
+    qc.invalidateQueries({ queryKey: ["wishlist"] });
+    toast.success(inWishlist ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها اضافه شد");
+  };
+
+  const submitReview = async () => {
+    if (!user) return needLogin();
+    const text = reviewText.trim();
+    if (text.length < 3 || text.length > 2000) {
+      toast.error("متن نظر باید بین ۳ تا ۲۰۰۰ کاراکتر باشد");
+      return;
+    }
+    const { error } = await supabase.from("reviews").insert({
+      user_id: user.id,
+      game_id: gameId,
+      text,
+      is_spoiler: spoiler,
+    });
+    if (error) {
+      toast.error("ثبت نظر ناموفق بود");
+      return;
+    }
+    setReviewText("");
+    setSpoiler(false);
+    toast.success("نظر شما ثبت شد");
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+  };
+
+  const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
+    if (!user) return needLogin();
+    await supabase
+      .from("review_votes")
+      .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
+    qc.invalidateQueries({ queryKey: ["reviews"] });
+  };
+
+  const reportReview = async (reviewId: string) => {
+    if (!user) return needLogin();
+    await supabase.from("review_reports").insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+    toast.success("گزارش شما ثبت شد");
+  };
+
+  const addTag = async () => {
+    if (!user) return needLogin();
+    const name = newTag.trim();
+    if (name.length < 2 || name.length > 30) {
+      toast.error("برچسب باید بین ۲ تا ۳۰ کاراکتر باشد");
+      return;
+    }
+    const { data: existing } = await supabase.from("tags").select("id").eq("name", name).maybeSingle();
+    let tagId = existing?.id;
+    if (!tagId) {
+      const { data, error } = await supabase.from("tags").insert({ name, created_by: user.id }).select("id").single();
+      if (error) {
+        toast.error("ثبت برچسب ناموفق بود");
+        return;
+      }
+      tagId = data.id;
+    }
+    await supabase.from("game_tags").insert({ game_id: gameId, tag_id: tagId, created_by: user.id });
+    setNewTag("");
+    toast.success("برچسب ثبت شد و پس از تایید ادمین در فیلترها نمایش داده می‌شود");
+    qc.invalidateQueries({ queryKey: ["game-tags"] });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto grid max-w-5xl gap-6 px-4 py-8 sm:grid-cols-[240px_minmax(0,1fr)]">
+        <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!game) {
+    return <p className="px-4 py-16 text-center text-muted-foreground">این پرونده پیدا نشد.</p>;
+  }
+
+  const g = game as unknown as {
+    title: string;
+    description: string;
+    creator_studio: string | null;
+    release_year: number | null;
+    platforms: string[];
+    genres: string[];
+    min_players: number | null;
+    max_players: number | null;
+    age_rating: string | null;
+    duration_minutes: number | null;
+    poster_url: string | null;
+    raw_avg: number;
+    votes: number;
+    weighted_score: number;
+  };
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-10 px-4 py-8">
+      <div className="grid gap-6 sm:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="overflow-hidden rounded-xl surface-case">
+          <div className="aspect-[3/4] bg-muted">
+            {g.poster_url && (
+              <img src={g.poster_url} alt={`پوستر ${g.title}`} className="h-full w-full object-cover" />
+            )}
+          </div>
+        </div>
+
+        <div className="min-w-0 space-y-4">
+          <div>
+            <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {g.creator_studio ?? "نامشخص"} · {toFa(g.release_year ?? "")}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 rounded-xl surface-case p-4">
+            <div className="flex items-baseline gap-1">
+              <Star className="h-6 w-6 fill-current text-primary" />
+              <span className="text-4xl font-black text-primary">{faNum(Number(g.raw_avg), 1)}</span>
+              <span className="text-sm text-muted-foreground">/ ۱۰</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <p>{faNum(g.votes)} رای‌دهنده</p>
+              <p>امتیاز وزنی: {faNum(Number(g.weighted_score), 1)}</p>
+            </div>
+            <Button variant={inWishlist ? "secondary" : "outline"} className="mr-auto gap-2" onClick={toggleWishlist}>
+              <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
+              {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+            </Button>
+          </div>
+
+          <div className="rounded-xl surface-case p-4">
+            <p className="mb-2 text-sm font-bold">امتیاز شما {myRating ? `(${toFa(myRating)})` : ""}</p>
+            <div className="flex flex-wrap gap-1">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => rate(i + 1)}
+                  className={`h-9 w-9 rounded-md border border-border text-sm font-bold transition-colors hover:bg-primary hover:text-primary-foreground ${
+                    myRating && myRating >= i + 1 ? "bg-primary/20 text-primary" : "bg-secondary"
+                  }`}
+                >
+                  {toFa(i + 1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <Info label="پلتفرم" value={g.platforms?.join("، ") || "—"} />
+            <Info label="تعداد بازیکن" value={`${toFa(g.min_players ?? "?")} تا ${toFa(g.max_players ?? "?")}`} />
+            <Info label="رده سنی" value={g.age_rating ?? "—"} />
+            <Info label="مدت بازی" value={faDuration(g.duration_minutes)} />
+            <Info label="ژانر" value={g.genres?.join("، ") || "—"} />
+          </div>
+
+          <p className="leading-8 text-muted-foreground">{g.description}</p>
+
+          <div className="space-y-2">
+            <p className="flex items-center gap-2 text-sm font-bold">
+              <TagIcon className="h-4 w-4 text-primary" /> برچسب‌ها
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {(gameTags ?? []).map((t, i) => (
+                <Badge key={i} variant={t.tags?.status === "approved" ? "secondary" : "outline"}>
+                  {t.tags?.name}
+                  {t.tags?.status !== "approved" ? " (در انتظار تایید)" : ""}
+                </Badge>
+              ))}
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="برچسب جدید"
+                  className="h-8 w-36"
+                />
+                <Button size="sm" variant="secondary" onClick={addTag}>
+                  افزودن
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className="space-y-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <h2 className="truncate text-lg font-extrabold">نظرات کاربران</h2>
+          <Tabs value={sort} onValueChange={setSort} dir="rtl">
+            <TabsList>
+              <TabsTrigger value="popular">محبوب‌ترین</TabsTrigger>
+              <TabsTrigger value="new">جدیدترین</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="space-y-3 rounded-xl surface-case p-4">
+          <Textarea
+            rows={3}
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            placeholder="نظر خود را درباره این پرونده بنویسید…"
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={spoiler} onCheckedChange={(c) => setSpoiler(!!c)} />
+              این نظر حاوی اسپویلر است
+            </label>
+            <Button onClick={submitReview}>ثبت نظر</Button>
+          </div>
+        </div>
+
+        {(reviews ?? []).map((r) => {
+          const hidden = r.is_spoiler && !revealed.includes(r.id);
+          return (
+            <article key={r.id} className="space-y-3 rounded-xl surface-case p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                <p className="truncate text-sm font-bold">{r.profiles?.username ?? "کاربر"}</p>
+                <span className="shrink-0 text-xs text-muted-foreground">{faDate(r.created_at)}</span>
+              </div>
+              <div className="relative">
+                <p className={`text-sm leading-7 ${hidden ? "blur-sm select-none" : ""}`}>{r.text}</p>
+                {hidden && (
+                  <button
+                    onClick={() => setRevealed((p) => [...p, r.id])}
+                    className="absolute inset-0 flex items-center justify-center gap-2 text-xs font-bold text-primary"
+                  >
+                    <EyeOff className="h-4 w-4" /> حاوی اسپویلر — برای نمایش کلیک کنید
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "helpful")}>
+                  <ThumbsUp className="h-4 w-4" /> {faNum(r.helpful_count)}
+                </Button>
+                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "unhelpful")}>
+                  <ThumbsDown className="h-4 w-4" /> {faNum(r.unhelpful_count)}
+                </Button>
+                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => reportReview(r.id)}>
+                  <Flag className="h-4 w-4" /> گزارش
+                </Button>
+              </div>
+            </article>
+          );
+        })}
+        {reviews?.length === 0 && (
+          <p className="rounded-xl surface-case p-6 text-center text-sm text-muted-foreground">
+            هنوز نظری ثبت نشده است. اولین نفر باشید.
+          </p>
+        )}
+      </section>
+
+      {!!similar?.length && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-extrabold">پرونده‌های مشابه</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {similar.map((s) => (
+              <GameCard key={s.id} game={s} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="text-center">
+        <Link to="/ranking" className="text-sm text-primary hover:underline">
+          بازگشت به جدول رتبه‌بندی
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-secondary/60 p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-sm font-bold">{value}</p>
+    </div>
+  );
+}
