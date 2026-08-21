@@ -66,11 +66,18 @@ function RankingPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab} dir="rtl">
-        <TabsList className="w-full">
-          <TabsTrigger value="all" className="flex-1">برترین‌های همه‌دوران</TabsTrigger>
-          <TabsTrigger value="year" className="flex-1">برترین‌های امسال</TabsTrigger>
-          <TabsTrigger value="votes" className="flex-1">پرطرفدارترین‌ها</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1">
+          <TabsTrigger value="all" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
+            برترین‌های همه‌دوران
+          </TabsTrigger>
+          <TabsTrigger value="year" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
+            برترین‌های امسال
+          </TabsTrigger>
+          <TabsTrigger value="votes" className="whitespace-normal px-1 py-2 text-[11px] leading-tight sm:text-sm">
+            پرطرفدارترین‌ها
+          </TabsTrigger>
         </TabsList>
+
       </Tabs>
 
 
