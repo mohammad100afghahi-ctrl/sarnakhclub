@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { faDate, toFa } from "@/lib/fa";
 import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 import { AdminsManager } from "@/components/admin/AdminsManager";
+import { FeedbackManager } from "@/components/admin/FeedbackManager";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -216,6 +217,7 @@ function AdminPage() {
           <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
           <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
+          <TabsTrigger value="feedback" className="flex-1">بازخوردها</TabsTrigger>
           <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
           {isPrimaryAdmin && (
             <TabsTrigger value="admins" className="flex-1">مدیران</TabsTrigger>
@@ -344,6 +346,10 @@ function AdminPage() {
           {!(reports ?? []).filter((r) => reportFilter === "all" || r.status === reportFilter).length && (
             <p className="text-sm text-muted-foreground">گزارشی در این وضعیت نیست.</p>
           )}
+        </TabsContent>
+
+        <TabsContent value="feedback" className="pt-4">
+          <FeedbackManager />
         </TabsContent>
 
         <TabsContent value="settings" className="pt-4">

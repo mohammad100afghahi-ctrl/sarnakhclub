@@ -34,14 +34,20 @@ export function FeedbackManager() {
 
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("feedback").update({ status }).eq("id", id);
-    if (error) return toast.error("انجام نشد: " + error.message);
+    if (error) {
+      toast.error("انجام نشد: " + error.message);
+      return;
+    }
     toast.success("وضعیت به‌روزرسانی شد");
     qc.invalidateQueries({ queryKey: ["admin-feedback"] });
   };
 
   const remove = async (id: string) => {
     const { error } = await supabase.from("feedback").delete().eq("id", id);
-    if (error) return toast.error("حذف نشد: " + error.message);
+    if (error) {
+      toast.error("حذف نشد: " + error.message);
+      return;
+    }
     toast.success("حذف شد");
     qc.invalidateQueries({ queryKey: ["admin-feedback"] });
   };
