@@ -146,35 +146,34 @@ function SuggestPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>حداقل بازیکن</Label>
-            <Input
-              inputMode="numeric"
-              value={form.min_players}
-              onChange={(e) => set("min_players")(digits(e.target.value))}
-            />
+            <Label>تعداد بازیکن</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                inputMode="numeric"
+                placeholder="حداقل"
+                value={form.min_players}
+                onChange={(e) => set("min_players")(digits(e.target.value))}
+              />
+              <span className="text-xs text-muted-foreground">تا</span>
+              <Input
+                inputMode="numeric"
+                placeholder="حداکثر"
+                value={form.max_players}
+                onChange={(e) => set("max_players")(digits(e.target.value))}
+              />
+            </div>
           </div>
           <div className="space-y-2">
-            <Label>حداکثر بازیکن</Label>
+            <Label>رده سنی (فقط عدد)</Label>
             <Input
               inputMode="numeric"
-              value={form.max_players}
-              onChange={(e) => set("max_players")(digits(e.target.value))}
+              placeholder="۱۲"
+              value={form.age_rating}
+              onChange={(e) => set("age_rating")(digits(e.target.value))}
             />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>رده سنی (فقط عدد)</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                inputMode="numeric"
-                placeholder="۱۲"
-                value={form.age_rating}
-                onChange={(e) => set("age_rating")(digits(e.target.value))}
-              />
-              <span className="text-sm text-muted-foreground">+</span>
-            </div>
-          </div>
           <div className="space-y-2">
             <Label>مدت بازی (دقیقه)</Label>
             <div className="flex items-center gap-2">
