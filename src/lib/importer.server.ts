@@ -209,24 +209,38 @@ export async function extractCase(pageUrl: string, markdown: string, images: str
   };
 }
 
-export async function uploadPoster(imageUrl: string): Promise<string | null> {
-  try {
-    const res = await fetch(imageUrl);
-    if (!res.ok) return null;
-    const contentType = res.headers.get("content-type") ?? "image/jpeg";
-    if (!contentType.startsWith("image/")) return null;
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    if (bytes.byteLength === 0 || bytes.byteLength > 8 * 1024 * 1024) return null;
-    const ext = contentType.split("/")[1]?.split(";")[0] ?? "jpg";
-    const path = `ai-import/${crypto.randomUUID()}.${ext}`;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.storage.from("posters").upload(path, bytes, { contentType });
-    if (error) return null;
-    const { data } = await supabaseAdmin.storage
-      .from("posters")
-      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
-    return data?.signedUrl ?? null;
-  } catch {
-    return null;
+export async function uploadPoster(imageUrl: string, fallbacks: string[] = []): Promise<string | null> {
+  const candidates = [imageUrl, ...fallbacks].filter((u, i, a) => u && a.indexOf(u) === i).slice(0, 6);
+  for (const candidate of candidates) {
+    try {
+      const res = await fetch(candidate, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+          Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
+          Referer: new URL(candidate).origin,
+        },
+      });
+      if (!res.ok) continue;
+      const contentType = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0]!.trim();
+      if (!contentType.startsWith("image/")) continue;
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.byteLength < 2048 || bytes.byteLength > 8 * 1024 * 1024) continue;
+      const ext = contentType.split("/")[1] ?? "jpg";
+      const path = `ai-import/${crypto.randomUUID()}.${ext}`;
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin.storage.from("posters").upload(path, bytes, { contentType });
+      if (error) continue;
+      const { data } = await supabaseAdmin.storage
+        .from("posters")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (data?.signedUrl) return data.signedUrl;
+    } catch {
+      /* try next candidate */
+    }
+  }
+  return null;
+}
+
   }
 }
