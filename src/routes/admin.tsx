@@ -137,11 +137,11 @@ function AdminPage() {
     title: string;
     description: string | null;
     creator_studio: string | null;
-    release_year: number | null;
     min_players?: number | null;
     max_players?: number | null;
     age_rating?: string | null;
     duration_minutes?: number | null;
+    duration_max_minutes?: number | null;
     poster_url: string | null;
   }) => {
     setDraft({
@@ -149,11 +149,11 @@ function AdminPage() {
       title: s.title,
       description: s.description ?? "",
       creator_studio: s.creator_studio ?? "",
-      release_year: s.release_year ? String(s.release_year) : "",
       min_players: s.min_players ? String(s.min_players) : "",
       max_players: s.max_players ? String(s.max_players) : "",
       age_rating: s.age_rating ?? "",
       duration_minutes: s.duration_minutes ? String(s.duration_minutes) : "",
+      duration_max_minutes: s.duration_max_minutes ? String(s.duration_max_minutes) : "",
       poster_url: s.poster_url ?? "",
     });
 
@@ -225,7 +225,7 @@ function AdminPage() {
                 )}
                 <div>
                   <p className="font-bold">
-                    {s.title} {s.release_year ? `(${toFa(s.release_year)})` : ""}
+                    {s.title} {s.creator_studio ? `— ${s.creator_studio}` : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">{s.description}</p>
                 </div>

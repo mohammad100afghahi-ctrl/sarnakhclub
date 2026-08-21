@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { onlyDigits, parseNum } from "@/lib/fa";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/suggest")({
   head: () => ({
     meta: [
-      { title: "پیشنهاد بازی جدید | آرشیو پرونده" },
+      { title: "پیشنهاد پرونده جدید | آرشیو پرونده" },
       { name: "description", content: "بازی معمایی یا کارآگاهی موردعلاقه‌تان را پیشنهاد دهید تا پس از بررسی ادمین به آرشیو اضافه شود." },
-      { property: "og:title", content: "پیشنهاد بازی جدید | آرشیو پرونده" },
+      { property: "og:title", content: "پیشنهاد پرونده جدید | آرشیو پرونده" },
       { property: "og:description", content: "فرم ثبت پرونده جدید برای کاربران عضو." },
     ],
   }),
@@ -25,7 +26,6 @@ const schema = z.object({
   title: z.string().trim().min(2, { message: "نام بازی را وارد کنید" }).max(120),
   description: z.string().trim().max(2000),
   creator_studio: z.string().trim().max(120).optional(),
-  release_year: z.number().int().min(1900).max(2100).optional(),
   source_url: z.string().trim().url({ message: "لینک معتبر نیست" }).max(500).optional().or(z.literal("")),
 });
 
@@ -33,17 +33,17 @@ const emptyForm = {
   title: "",
   description: "",
   creator_studio: "",
-  release_year: "",
   min_players: "",
   max_players: "",
   age_rating: "",
   duration_minutes: "",
+  duration_max_minutes: "",
   source_url: "",
   poster_url: "",
 };
 
-const num = (v: string) => (v.trim() === "" ? null : Number(v));
-const digits = (v: string) => v.replace(/[^\d]/g, "");
+const num = parseNum;
+const digits = onlyDigits;
 
 function SuggestPage() {
   const { user } = useAuth();
@@ -56,7 +56,7 @@ function SuggestPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
-        <h1 className="text-xl font-black">برای پیشنهاد بازی باید وارد شوید</h1>
+        <h1 className="text-xl font-black">برای پیشنهاد پرونده باید وارد شوید</h1>
         <Link to="/auth">
           <Button>ورود / ثبت‌نام</Button>
         </Link>
@@ -92,7 +92,6 @@ function SuggestPage() {
   const submit = async () => {
     const parsed = schema.safeParse({
       ...form,
-      release_year: form.release_year ? Number(form.release_year) : undefined,
       creator_studio: form.creator_studio || undefined,
     });
     if (!parsed.success) {
@@ -105,11 +104,11 @@ function SuggestPage() {
       title: parsed.data.title,
       description: parsed.data.description,
       creator_studio: parsed.data.creator_studio ?? null,
-      release_year: parsed.data.release_year ?? null,
       min_players: num(form.min_players),
       max_players: num(form.max_players),
-      age_rating: form.age_rating.trim() || null,
+      age_rating: digits(form.age_rating) || null,
       duration_minutes: num(form.duration_minutes),
+      duration_max_minutes: num(form.duration_max_minutes),
       source_url: form.source_url || null,
       poster_url: form.poster_url || null,
     });
@@ -141,19 +140,9 @@ function SuggestPage() {
           <Label>توضیح</Label>
           <Textarea rows={4} value={form.description} onChange={(e) => set("description")(e.target.value)} />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label>محصول گروه</Label>
-            <Input value={form.creator_studio} onChange={(e) => set("creator_studio")(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>سال انتشار</Label>
-            <Input
-              inputMode="numeric"
-              value={form.release_year}
-              onChange={(e) => set("release_year")(digits(e.target.value))}
-            />
-          </div>
+        <div className="space-y-2">
+          <Label>محصول گروه</Label>
+          <Input value={form.creator_studio} onChange={(e) => set("creator_studio")(e.target.value)} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -175,16 +164,34 @@ function SuggestPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>رده سنی</Label>
-            <Input value={form.age_rating} onChange={(e) => set("age_rating")(e.target.value)} />
+            <Label>رده سنی (فقط عدد)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                inputMode="numeric"
+                placeholder="۱۲"
+                value={form.age_rating}
+                onChange={(e) => set("age_rating")(digits(e.target.value))}
+              />
+              <span className="text-sm text-muted-foreground">+</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>مدت بازی (دقیقه)</Label>
-            <Input
-              inputMode="numeric"
-              value={form.duration_minutes}
-              onChange={(e) => set("duration_minutes")(digits(e.target.value))}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                inputMode="numeric"
+                placeholder="از"
+                value={form.duration_minutes}
+                onChange={(e) => set("duration_minutes")(digits(e.target.value))}
+              />
+              <span className="text-xs text-muted-foreground">تا</span>
+              <Input
+                inputMode="numeric"
+                placeholder="اختیاری"
+                value={form.duration_max_minutes}
+                onChange={(e) => set("duration_max_minutes")(digits(e.target.value))}
+              />
+            </div>
           </div>
         </div>
         <div className="space-y-2">

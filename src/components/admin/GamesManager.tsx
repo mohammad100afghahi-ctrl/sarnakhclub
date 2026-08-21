@@ -8,18 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { toFa } from "@/lib/fa";
+import { onlyDigits, parseNum } from "@/lib/fa";
 
 export type GameDraft = {
   id?: string;
   title: string;
   description: string;
   creator_studio: string;
-  release_year: string;
   min_players: string;
   max_players: string;
   age_rating: string;
   duration_minutes: string;
+  duration_max_minutes: string;
   poster_url: string;
   featured: boolean;
   status: string;
@@ -29,17 +29,17 @@ export const emptyDraft: GameDraft = {
   title: "",
   description: "",
   creator_studio: "",
-  release_year: "",
   min_players: "",
   max_players: "",
   age_rating: "",
   duration_minutes: "",
+  duration_max_minutes: "",
   poster_url: "",
   featured: false,
   status: "active",
 };
 
-const num = (v: string) => (v.trim() === "" ? null : Number(v));
+const num = parseNum;
 
 export function GamesManager({
   draft,
@@ -84,7 +84,7 @@ export function GamesManager({
     queryFn: async () => {
       const { data } = await supabase
         .from("games")
-        .select("id, title, release_year, status, featured, poster_url")
+        .select("id, title, creator_studio, status, featured, poster_url")
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -106,11 +106,11 @@ export function GamesManager({
       title: draft.title.trim(),
       description: draft.description.trim(),
       creator_studio: draft.creator_studio.trim() || null,
-      release_year: num(draft.release_year),
       min_players: num(draft.min_players),
       max_players: num(draft.max_players),
-      age_rating: draft.age_rating.trim() || null,
+      age_rating: onlyDigits(draft.age_rating) || null,
       duration_minutes: num(draft.duration_minutes),
+      duration_max_minutes: num(draft.duration_max_minutes),
       poster_url: draft.poster_url.trim() || null,
       featured: draft.featured,
       status: draft.status,
@@ -138,11 +138,11 @@ export function GamesManager({
       title: data.title ?? "",
       description: data.description ?? "",
       creator_studio: data.creator_studio ?? "",
-      release_year: data.release_year ? String(data.release_year) : "",
       min_players: data.min_players ? String(data.min_players) : "",
       max_players: data.max_players ? String(data.max_players) : "",
-      age_rating: data.age_rating ?? "",
+      age_rating: data.age_rating ? onlyDigits(String(data.age_rating)) : "",
       duration_minutes: data.duration_minutes ? String(data.duration_minutes) : "",
+      duration_max_minutes: data.duration_max_minutes ? String(data.duration_max_minutes) : "",
       poster_url: data.poster_url ?? "",
       featured: !!data.featured,
       status: data.status ?? "active",
@@ -182,20 +182,24 @@ export function GamesManager({
           <Field label="محصول گروه">
             <Input value={draft.creator_studio} onChange={(e) => set("creator_studio", e.target.value)} />
           </Field>
-          <Field label="سال انتشار">
-            <Input value={draft.release_year} onChange={(e) => set("release_year", e.target.value)} inputMode="numeric" placeholder="۲۰۱۹ → 2019" />
-          </Field>
-          <Field label="رده سنی">
-            <Input value={draft.age_rating} onChange={(e) => set("age_rating", e.target.value)} placeholder="+۱۲" />
+          <Field label="رده سنی (فقط عدد)">
+            <div className="flex items-center gap-2">
+              <Input value={draft.age_rating} onChange={(e) => set("age_rating", onlyDigits(e.target.value))} inputMode="numeric" placeholder="۱۲" />
+              <span className="text-sm text-muted-foreground">+</span>
+            </div>
           </Field>
           <Field label="حداقل بازیکن">
-            <Input value={draft.min_players} onChange={(e) => set("min_players", e.target.value)} inputMode="numeric" />
+            <Input value={draft.min_players} onChange={(e) => set("min_players", onlyDigits(e.target.value))} inputMode="numeric" />
           </Field>
           <Field label="حداکثر بازیکن">
-            <Input value={draft.max_players} onChange={(e) => set("max_players", e.target.value)} inputMode="numeric" />
+            <Input value={draft.max_players} onChange={(e) => set("max_players", onlyDigits(e.target.value))} inputMode="numeric" />
           </Field>
           <Field label="مدت زمان (دقیقه)">
-            <Input value={draft.duration_minutes} onChange={(e) => set("duration_minutes", e.target.value)} inputMode="numeric" />
+            <div className="flex items-center gap-2">
+              <Input value={draft.duration_minutes} onChange={(e) => set("duration_minutes", onlyDigits(e.target.value))} inputMode="numeric" placeholder="از" />
+              <span className="text-xs text-muted-foreground">تا</span>
+              <Input value={draft.duration_max_minutes} onChange={(e) => set("duration_max_minutes", onlyDigits(e.target.value))} inputMode="numeric" placeholder="اختیاری" />
+            </div>
           </Field>
           <Field label="تصویر پوستر">
             <div className="space-y-2">
@@ -244,7 +248,7 @@ export function GamesManager({
           <div key={g.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4 text-sm">
             <div>
               <p className="font-bold">
-                {g.title} {g.release_year ? `(${toFa(g.release_year)})` : ""}
+                {g.title} {g.creator_studio ? `— ${g.creator_studio}` : ""}
               </p>
               <p className="text-xs text-muted-foreground">
                 {g.status === "active" ? "منتشر شده" : "بایگانی"}

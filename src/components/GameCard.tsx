@@ -7,7 +7,7 @@ export type GameCardData = {
   id: string;
   title: string;
   poster_url: string | null;
-  release_year: number | null;
+  release_year?: number | null;
   weighted_score?: number | string | null;
   votes?: number | null;
 };
@@ -39,9 +39,9 @@ export function GameCard({ game }: { game: GameCardData }) {
       </div>
       <div className="space-y-1 p-3">
         <h3 className="truncate text-sm font-bold sm:text-base">{game.title}</h3>
-        <p className="truncate text-xs text-muted-foreground">
-          {game.release_year ? toFa(game.release_year) : "—"}
-        </p>
+        {game.release_year ? (
+          <p className="truncate text-xs text-muted-foreground">{toFa(game.release_year)}</p>
+        ) : null}
       </div>
     </Link>
   );

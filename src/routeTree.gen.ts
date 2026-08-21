@@ -16,6 +16,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as SuggestRouteImport } from './routes/suggest'
 import { Route as GameGameIdRouteImport } from './routes/game.$gameId'
+import { Route as StudioStudioRouteImport } from './routes/studio.$studio'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const GameGameIdRoute = GameGameIdRouteImport.update({
   path: '/game/$gameId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioStudioRoute = StudioStudioRouteImport.update({
+  id: '/studio/$studio',
+  path: '/studio/$studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/ranking': typeof RankingRoute
   '/suggest': typeof SuggestRoute
   '/game/$gameId': typeof GameGameIdRoute
+  '/studio/$studio': typeof StudioStudioRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/ranking': typeof RankingRoute
   '/suggest': typeof SuggestRoute
   '/game/$gameId': typeof GameGameIdRoute
+  '/studio/$studio': typeof StudioStudioRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/ranking': typeof RankingRoute
   '/suggest': typeof SuggestRoute
   '/game/$gameId': typeof GameGameIdRoute
+  '/studio/$studio': typeof StudioStudioRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/ranking'
     | '/suggest'
     | '/game/$gameId'
+    | '/studio/$studio'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/ranking'
     | '/suggest'
     | '/game/$gameId'
+    | '/studio/$studio'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/ranking'
     | '/suggest'
     | '/game/$gameId'
+    | '/studio/$studio'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   RankingRoute: typeof RankingRoute
   SuggestRoute: typeof SuggestRoute
   GameGameIdRoute: typeof GameGameIdRoute
+  StudioStudioRoute: typeof StudioStudioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameGameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/$studio': {
+      id: '/studio/$studio'
+      path: '/studio/$studio'
+      fullPath: '/studio/$studio'
+      preLoaderRoute: typeof StudioStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   RankingRoute: RankingRoute,
   SuggestRoute: SuggestRoute,
   GameGameIdRoute: GameGameIdRoute,
+  StudioStudioRoute: StudioStudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
