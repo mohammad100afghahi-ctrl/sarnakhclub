@@ -33,11 +33,11 @@ function ProfilePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("wishlist")
-        .select("game_id, games(id,title,poster_url,release_year)")
+        .select("game_id, games(id,title,poster_url)")
         .eq("user_id", user!.id);
       return (data ?? []) as unknown as {
         game_id: string;
-        games: { id: string; title: string; poster_url: string | null; release_year: number | null } | null;
+        games: { id: string; title: string; poster_url: string | null } | null;
       }[];
     },
   });
@@ -48,11 +48,11 @@ function ProfilePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("played_games")
-        .select("game_id, games(id,title,poster_url,release_year)")
+        .select("game_id, games(id,title,poster_url)")
         .eq("user_id", user!.id);
       return (data ?? []) as unknown as {
         game_id: string;
-        games: { id: string; title: string; poster_url: string | null; release_year: number | null } | null;
+        games: { id: string; title: string; poster_url: string | null } | null;
       }[];
     },
   });
@@ -150,7 +150,7 @@ function ProfilePage() {
                   params={{ gameId: w.games.id }}
                   className="rounded-xl surface-case p-4 text-sm hover:bg-accent"
                 >
-                  {w.games.title} {w.games.release_year ? `(${toFa(w.games.release_year)})` : ""}
+                  {w.games.title}
                 </Link>
               ) : null,
             )}
@@ -168,7 +168,7 @@ function ProfilePage() {
                   params={{ gameId: p.games.id }}
                   className="rounded-xl surface-case p-4 text-sm hover:bg-accent"
                 >
-                  {p.games.title} {p.games.release_year ? `(${toFa(p.games.release_year)})` : ""}
+                  {p.games.title}
                 </Link>
               ) : null,
             )}
