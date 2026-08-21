@@ -48,14 +48,42 @@ function AdminPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("review_reports")
-        .select("id, reason, created_at, reviews(id, text)")
+        .select("id, reason, status, created_at, user_id, review_id, reviews(id, text, user_id, game_id)")
         .order("created_at", { ascending: false });
-      return (data ?? []) as unknown as {
+      const rows = (data ?? []) as unknown as {
         id: string;
         reason: string | null;
+        status: string;
         created_at: string;
-        reviews: { id: string; text: string } | null;
+        user_id: string;
+        review_id: string;
+        reviews: { id: string; text: string; user_id: string; game_id: string } | null;
       }[];
+
+      const userIds = Array.from(
+        new Set(rows.flatMap((r) => [r.user_id, r.reviews?.user_id]).filter(Boolean) as string[]),
+      );
+      const gameIds = Array.from(new Set(rows.map((r) => r.reviews?.game_id).filter(Boolean) as string[]));
+
+      const [{ data: profs }, { data: gms }] = await Promise.all([
+        userIds.length
+          ? supabase.from("profiles").select("id, username").in("id", userIds)
+          : Promise.resolve({ data: [] as { id: string; username: string }[] }),
+        gameIds.length
+          ? supabase.from("games").select("id, title").in("id", gameIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      ]);
+
+      const nameOf = new Map((profs ?? []).map((p) => [p.id, p.username]));
+      const titleOf = new Map((gms ?? []).map((g) => [g.id, g.title]));
+
+      return rows.map((r) => ({
+        ...r,
+        reporterName: nameOf.get(r.user_id) ?? "کاربر ناشناس",
+        authorName: r.reviews ? nameOf.get(r.reviews.user_id) ?? "کاربر ناشناس" : null,
+        gameTitle: r.reviews ? titleOf.get(r.reviews.game_id) ?? null : null,
+        gameId: r.reviews?.game_id ?? null,
+      }));
     },
   });
 
