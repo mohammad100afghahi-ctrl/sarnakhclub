@@ -157,6 +157,25 @@ function ProfilePage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="played" className="pt-4">
+          <Empty items={playedList} text="هنوز پرونده‌ای را به‌عنوان انجام‌شده ثبت نکرده‌اید." />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(playedList ?? []).map((p) =>
+              p.games ? (
+                <Link
+                  key={p.game_id}
+                  to="/game/$gameId"
+                  params={{ gameId: p.games.id }}
+                  className="rounded-xl surface-case p-4 text-sm hover:bg-accent"
+                >
+                  {p.games.title} {p.games.release_year ? `(${toFa(p.games.release_year)})` : ""}
+                </Link>
+              ) : null,
+            )}
+          </div>
+        </TabsContent>
+
+
         <TabsContent value="ratings" className="pt-4">
           <Empty items={ratings} text="هنوز به بازی‌ای امتیاز نداده‌اید." />
           <div className="space-y-2">
