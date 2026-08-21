@@ -28,7 +28,7 @@ export const Route = createFileRoute("/game/$gameId")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("game_rankings")
-      .select("id, title, description, poster_url, avg_score, ratings_count")
+      .select("id, title, description, poster_url, raw_avg, votes")
       .eq("id", params.gameId)
       .maybeSingle();
     return { game: data as unknown as {
@@ -36,8 +36,8 @@ export const Route = createFileRoute("/game/$gameId")({
       title: string;
       description: string | null;
       poster_url: string | null;
-      avg_score: number | null;
-      ratings_count: number | null;
+      raw_avg: number | null;
+      votes: number | null;
     } | null };
   },
   head: ({ params, loaderData }) => {
@@ -68,11 +68,11 @@ export const Route = createFileRoute("/game/$gameId")({
       ...(g?.description ? { description: g.description } : {}),
       ...(g?.poster_url ? { image: g.poster_url } : {}),
     };
-    if (g?.avg_score && (g?.ratings_count ?? 0) > 0) {
+    if (g?.raw_avg && (g?.votes ?? 0) > 0) {
       ld["aggregateRating"] = {
         "@type": "AggregateRating",
-        ratingValue: Number(g.avg_score).toFixed(1),
-        ratingCount: g.ratings_count,
+        ratingValue: Number(g.raw_avg).toFixed(1),
+        ratingCount: g.votes,
         bestRating: 10,
         worstRating: 1,
       };
