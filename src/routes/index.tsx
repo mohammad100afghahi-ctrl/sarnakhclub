@@ -77,7 +77,7 @@ function Index() {
         <div className="space-y-4 p-6 sm:p-10">
           <p className="text-xs font-bold tracking-widest text-primary">پرونده‌های برگزیده هفته</p>
           <h1 className="text-2xl font-black leading-relaxed sm:text-4xl">
-            هر بازی، یک <span className="text-gradient-gold">پرونده باز</span> است
+            پرونده{"\u200C"}ات را انتخاب کن، <span className="text-gradient-gold">کارآگاه!</span>
           </h1>
           <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
             مرجع فارسی معرفی، نقد و رتبه‌بندی بازی های معمایی.
