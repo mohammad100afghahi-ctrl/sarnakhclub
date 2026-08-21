@@ -24,28 +24,102 @@ export async function firecrawlScrapeLinks(url: string): Promise<string[]> {
 }
 
 
+const BAD_IMAGE = /(logo|icon|sprite|avatar|placeholder|favicon|banner|loading|spinner|blank)/i;
+
+function absolutize(src: string, base: string): string | null {
+  try {
+    return new URL(src, base).toString();
+  } catch {
+    return null;
+  }
+}
+
 export async function firecrawlScrape(url: string): Promise<{ markdown: string; images: string[] }> {
   const res = await fetch(`${GATEWAY}/scrape`, {
     method: "POST",
     headers: gatewayHeaders(),
-    body: JSON.stringify({ url, formats: ["markdown"], onlyMainContent: true }),
+    body: JSON.stringify({ url, formats: ["markdown", "html"], onlyMainContent: false }),
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`خطای خواندن صفحه [${res.status}]: ${body.slice(0, 300)}`);
-  const json = JSON.parse(body) as {
+  const json = JSON.parse(body) as Record<string, unknown>;
+  const d = ((json["data"] as Record<string, unknown>) ?? json) as {
     markdown?: string;
-    metadata?: { ogImage?: string };
-    data?: { markdown?: string; metadata?: { ogImage?: string } };
+    html?: string;
+    metadata?: Record<string, unknown>;
   };
-  const markdown = json.markdown ?? json.data?.markdown ?? "";
-  const og = json.metadata?.ogImage ?? json.data?.metadata?.ogImage;
-  const images: string[] = [];
-  if (og) images.push(og);
-  for (const m of markdown.matchAll(/!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g)) {
-    if (m[1]) images.push(m[1]);
+  const markdown = d.markdown ?? "";
+  const html = d.html ?? "";
+  const meta = d.metadata ?? {};
+
+  const ordered: string[] = [];
+  const push = (raw?: unknown) => {
+    if (typeof raw !== "string" || !raw.trim()) return;
+    const abs = absolutize(raw.trim(), url);
+    if (!abs || !/^https?:/i.test(abs)) return;
+    if (abs.startsWith("data:") || /\.svg(\?|$)/i.test(abs)) return;
+    if (!ordered.includes(abs)) ordered.push(abs);
+  };
+
+  // 1) social/meta images (firecrawl returns raw meta keys like "og:image")
+  for (const key of ["og:image", "ogImage", "og:image:secure_url", "twitter:image", "twitter:image:src", "image"]) {
+    const v = meta[key];
+    if (Array.isArray(v)) v.forEach(push);
+    else push(v);
   }
-  return { markdown, images };
+
+  // 2) JSON-LD product images
+  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
+    try {
+      const raw = JSON.parse(m[1] ?? "");
+      const walk = (node: unknown) => {
+        if (!node) return;
+        if (Array.isArray(node)) return node.forEach(walk);
+        if (typeof node === "object") {
+          const o = node as Record<string, unknown>;
+          if (o["image"]) {
+            if (Array.isArray(o["image"])) o["image"].forEach((i) => push(typeof i === "string" ? i : (i as Record<string, unknown>)?.["url"]));
+            else if (typeof o["image"] === "string") push(o["image"]);
+            else push((o["image"] as Record<string, unknown>)?.["url"]);
+          }
+          Object.values(o).forEach(walk);
+        }
+      };
+      walk(raw);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  // 3) <img> tags — prefer large / non-icon sources
+  const imgs: Array<{ src: string; score: number }> = [];
+  for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
+    const tag = m[0];
+    const attr = (name: string) => tag.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"))?.[1];
+    let src = attr("data-src") ?? attr("data-original") ?? attr("data-lazy-src") ?? attr("src");
+    const srcset = attr("srcset") ?? attr("data-srcset");
+    if (srcset) {
+      const last = srcset.split(",").map((s) => s.trim()).filter(Boolean).pop();
+      if (last) src = last.split(/\s+/)[0] ?? src;
+    }
+    if (!src) continue;
+    const w = Number(attr("width") ?? 0);
+    const h = Number(attr("height") ?? 0);
+    if ((w && w < 120) || (h && h < 120)) continue;
+    if (BAD_IMAGE.test(src)) continue;
+    imgs.push({ src, score: (w || 0) * (h || 0) });
+  }
+  imgs.sort((a, b) => b.score - a.score);
+  imgs.forEach((i) => push(i.src));
+
+  // 4) markdown images as last resort
+  for (const m of markdown.matchAll(/!\[[^\]]*\]\((\S+?)(?:\s+"[^"]*")?\)/g)) {
+    if (m[1] && !BAD_IMAGE.test(m[1])) push(m[1]);
+  }
+
+  return { markdown, images: ordered.slice(0, 12) };
 }
+
 
 export type ExtractedCase = {
   is_case_game: boolean;
