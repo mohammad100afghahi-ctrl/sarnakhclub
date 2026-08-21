@@ -288,6 +288,22 @@ function AdminPage() {
 
 
         <TabsContent value="suggestions" className="space-y-2 pt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {suggestions?.length ? `${toFa(suggestions.length)} پیشنهاد در انتظار` : ""}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!suggestions}
+              onClick={async () => {
+                await qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
+                toast.success("فهرست پیشنهادها به‌روزرسانی شد");
+              }}
+            >
+              به‌روزرسانی
+            </Button>
+          </div>
           {(suggestions ?? []).map((s) => (
             <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl surface-case p-4 text-sm">
               <div className="flex items-start gap-3">
