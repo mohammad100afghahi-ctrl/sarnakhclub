@@ -229,14 +229,90 @@ function AdminPage() {
           {!suggestions?.length && <p className="text-sm text-muted-foreground">پیشنهادی ثبت نشده است.</p>}
         </TabsContent>
 
-        <TabsContent value="reports" className="space-y-2 pt-4">
-          {(reports ?? []).map((r) => (
-            <div key={r.id} className="rounded-xl surface-case p-4 text-sm">
-              <p className="text-xs text-muted-foreground">دلیل: {r.reason ?? "—"}</p>
-              <p className="mt-1">{r.reviews?.text ?? "نظر حذف شده است"}</p>
-            </div>
-          ))}
-          {!reports?.length && <p className="text-sm text-muted-foreground">گزارشی ثبت نشده است.</p>}
+        <TabsContent value="reports" className="space-y-3 pt-4">
+          <div className="flex flex-wrap gap-2">
+            {([
+              ["open", "باز"],
+              ["resolved", "رسیدگی‌شده"],
+              ["dismissed", "نادیده‌گرفته"],
+              ["all", "همه"],
+            ] as const).map(([key, label]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={reportFilter === key ? "default" : "secondary"}
+                onClick={() => setReportFilter(key)}
+              >
+                {label} ({toFa((reports ?? []).filter((r) => key === "all" || r.status === key).length)})
+              </Button>
+            ))}
+          </div>
+
+          {(reports ?? [])
+            .filter((r) => reportFilter === "all" || r.status === reportFilter)
+            .map((r) => (
+              <div key={r.id} className="space-y-3 rounded-xl surface-case p-4 text-sm">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span
+                    className={`rounded-full px-2 py-0.5 ${
+                      r.status === "open"
+                        ? "bg-primary/15 text-primary"
+                        : r.status === "resolved"
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {r.status === "open" ? "باز" : r.status === "resolved" ? "رسیدگی‌شده" : "نادیده‌گرفته"}
+                  </span>
+                  <span>گزارش‌دهنده: {r.reporterName}</span>
+                  <span>•</span>
+                  <span>{faDate(r.created_at)}</span>
+                  {r.gameTitle && r.gameId && (
+                    <>
+                      <span>•</span>
+                      <Link to="/game/$gameId" params={{ gameId: r.gameId }} className="text-primary hover:underline">
+                        {r.gameTitle}
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted-foreground">دلیل گزارش: {r.reason?.trim() || "—"}</p>
+
+                <div className="rounded-lg bg-secondary/50 p-3">
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    نویسنده نظر: {r.authorName ?? "—"}
+                  </p>
+                  <p>{r.reviews?.text ?? "نظر حذف شده است"}</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {r.reviews && (
+                    <Button size="sm" variant="destructive" onClick={() => deleteReportedReview(r.reviews!.id, r.id)}>
+                      حذف نظر
+                    </Button>
+                  )}
+                  {r.status !== "resolved" && (
+                    <Button size="sm" variant="outline" onClick={() => setReportStatus(r.id, "resolved")}>
+                      رسیدگی شد
+                    </Button>
+                  )}
+                  {r.status !== "dismissed" && (
+                    <Button size="sm" variant="secondary" onClick={() => setReportStatus(r.id, "dismissed")}>
+                      نادیده گرفتن
+                    </Button>
+                  )}
+                  {r.status !== "open" && (
+                    <Button size="sm" variant="ghost" onClick={() => setReportStatus(r.id, "open")}>
+                      بازگشایی
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          {!(reports ?? []).filter((r) => reportFilter === "all" || r.status === reportFilter).length && (
+            <p className="text-sm text-muted-foreground">گزارشی در این وضعیت نیست.</p>
+          )}
         </TabsContent>
 
         <TabsContent value="settings" className="pt-4">
