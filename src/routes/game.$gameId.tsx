@@ -11,6 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { GameCard, type GameCardData } from "@/components/GameCard";
 import { faDate, faDuration, faNum, toFa } from "@/lib/fa";
 
@@ -46,6 +54,8 @@ function GamePage() {
   const [spoiler, setSpoiler] = useState(false);
   const [revealed, setRevealed] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
+  const [reportFor, setReportFor] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState("");
 
   const { data: game, isLoading } = useQuery({
     queryKey: ["game", gameId],
@@ -207,13 +217,23 @@ function GamePage() {
     qc.invalidateQueries({ queryKey: ["reviews"] });
   };
 
-  const reportReview = async (reviewId: string) => {
+  const openReport = (reviewId: string) => {
     if (!user) { needLogin(); return; }
+    setReportFor(reviewId);
+    setReportReason("");
+  };
+
+  const submitReport = async () => {
+    if (!user || !reportFor) return;
+    const reason = reportReason.trim();
+    if (reason.length < 3) { toast.error("لطفاً دلیل گزارش را بنویسید"); return; }
     const { error } = await supabase
       .from("review_reports")
-      .insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
+      .insert({ review_id: reportFor, user_id: user.id, reason });
     if (error) { toast.error("ثبت گزارش ناموفق بود"); return; }
-    toast.success("گزارش شما ثبت شد");
+    toast.success("گزارش شما ثبت شد و توسط مدیران بررسی می‌شود");
+    setReportFor(null);
+    setReportReason("");
   };
 
 
@@ -393,7 +413,7 @@ function GamePage() {
                 >
                   <ThumbsDown className="h-4 w-4" /> {faNum(r.unhelpful_count)}
                 </Button>
-                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => reportReview(r.id)}>
+                <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => openReport(r.id)}>
                   <Flag className="h-4 w-4" /> گزارش
                 </Button>
                 {(isAdmin || r.user_id === user?.id) && (
@@ -434,6 +454,27 @@ function GamePage() {
           بازگشت به جدول رتبه‌بندی
         </Link>
       </div>
+
+      <Dialog open={!!reportFor} onOpenChange={(o) => !o && setReportFor(null)}>
+        <DialogContent dir="rtl" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>گزارش نظر</DialogTitle>
+            <DialogDescription>
+              دلیل گزارش را بنویسید (توهین، اسپویل بدون هشدار، تبلیغ، محتوای نامناسب و...). مدیران بررسی می‌کنند.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            placeholder="دلیل گزارش..."
+            rows={4}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="secondary" onClick={() => setReportFor(null)}>انصراف</Button>
+            <Button onClick={submitReport}>ارسال گزارش</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

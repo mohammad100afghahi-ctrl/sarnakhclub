@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toFa } from "@/lib/fa";
+import { faDate, toFa } from "@/lib/fa";
 import { GamesManager, emptyDraft, type GameDraft } from "@/components/admin/GamesManager";
 
 export const Route = createFileRoute("/admin")({
@@ -29,6 +29,7 @@ function AdminPage() {
   const [mValue, setMValue] = useState("");
   const [tab, setTab] = useState("games");
   const [draft, setDraft] = useState<GameDraft>(emptyDraft);
+  const [reportFilter, setReportFilter] = useState<"open" | "resolved" | "dismissed" | "all">("open");
 
   const { data: suggestions } = useQuery({
     queryKey: ["admin-suggestions"],
@@ -48,14 +49,42 @@ function AdminPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("review_reports")
-        .select("id, reason, created_at, reviews(id, text)")
+        .select("id, reason, status, created_at, user_id, review_id, reviews(id, text, user_id, game_id)")
         .order("created_at", { ascending: false });
-      return (data ?? []) as unknown as {
+      const rows = (data ?? []) as unknown as {
         id: string;
         reason: string | null;
+        status: string;
         created_at: string;
-        reviews: { id: string; text: string } | null;
+        user_id: string;
+        review_id: string;
+        reviews: { id: string; text: string; user_id: string; game_id: string } | null;
       }[];
+
+      const userIds = Array.from(
+        new Set(rows.flatMap((r) => [r.user_id, r.reviews?.user_id]).filter(Boolean) as string[]),
+      );
+      const gameIds = Array.from(new Set(rows.map((r) => r.reviews?.game_id).filter(Boolean) as string[]));
+
+      const [{ data: profs }, { data: gms }] = await Promise.all([
+        userIds.length
+          ? supabase.from("profiles").select("id, username").in("id", userIds)
+          : Promise.resolve({ data: [] as { id: string; username: string }[] }),
+        gameIds.length
+          ? supabase.from("games").select("id, title").in("id", gameIds)
+          : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      ]);
+
+      const nameOf = new Map((profs ?? []).map((p) => [p.id, p.username]));
+      const titleOf = new Map((gms ?? []).map((g) => [g.id, g.title]));
+
+      return rows.map((r) => ({
+        ...r,
+        reporterName: nameOf.get(r.user_id) ?? "کاربر ناشناس",
+        authorName: r.reviews ? nameOf.get(r.reviews.user_id) ?? "کاربر ناشناس" : null,
+        gameTitle: r.reviews ? titleOf.get(r.reviews.game_id) ?? null : null,
+        gameId: r.reviews?.game_id ?? null,
+      }));
     },
   });
 
@@ -77,6 +106,22 @@ function AdminPage() {
     toast.success("وضعیت پیشنهاد به‌روزرسانی شد");
     qc.invalidateQueries({ queryKey: ["admin-suggestions"] });
   };
+
+  const setReportStatus = async (id: string, status: "resolved" | "dismissed" | "open") => {
+    const { error } = await supabase.from("review_reports").update({ status }).eq("id", id);
+    if (error) { toast.error("به‌روزرسانی گزارش ناموفق بود"); return; }
+    toast.success("وضعیت گزارش به‌روزرسانی شد");
+    qc.invalidateQueries({ queryKey: ["admin-reports"] });
+  };
+
+  const deleteReportedReview = async (reviewId: string, reportId: string) => {
+    const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
+    if (error) { toast.error("حذف نظر ناموفق بود"); return; }
+    await supabase.from("review_reports").update({ status: "resolved" }).eq("id", reportId);
+    toast.success("نظر حذف و گزارش بسته شد");
+    qc.invalidateQueries({ queryKey: ["admin-reports"] });
+  };
+
 
   const buildFromSuggestion = (s: {
     title: string;
@@ -185,14 +230,90 @@ function AdminPage() {
           {!suggestions?.length && <p className="text-sm text-muted-foreground">پیشنهادی ثبت نشده است.</p>}
         </TabsContent>
 
-        <TabsContent value="reports" className="space-y-2 pt-4">
-          {(reports ?? []).map((r) => (
-            <div key={r.id} className="rounded-xl surface-case p-4 text-sm">
-              <p className="text-xs text-muted-foreground">دلیل: {r.reason ?? "—"}</p>
-              <p className="mt-1">{r.reviews?.text ?? "نظر حذف شده است"}</p>
-            </div>
-          ))}
-          {!reports?.length && <p className="text-sm text-muted-foreground">گزارشی ثبت نشده است.</p>}
+        <TabsContent value="reports" className="space-y-3 pt-4">
+          <div className="flex flex-wrap gap-2">
+            {([
+              ["open", "باز"],
+              ["resolved", "رسیدگی‌شده"],
+              ["dismissed", "نادیده‌گرفته"],
+              ["all", "همه"],
+            ] as const).map(([key, label]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant={reportFilter === key ? "default" : "secondary"}
+                onClick={() => setReportFilter(key)}
+              >
+                {label} ({toFa((reports ?? []).filter((r) => key === "all" || r.status === key).length)})
+              </Button>
+            ))}
+          </div>
+
+          {(reports ?? [])
+            .filter((r) => reportFilter === "all" || r.status === reportFilter)
+            .map((r) => (
+              <div key={r.id} className="space-y-3 rounded-xl surface-case p-4 text-sm">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span
+                    className={`rounded-full px-2 py-0.5 ${
+                      r.status === "open"
+                        ? "bg-primary/15 text-primary"
+                        : r.status === "resolved"
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {r.status === "open" ? "باز" : r.status === "resolved" ? "رسیدگی‌شده" : "نادیده‌گرفته"}
+                  </span>
+                  <span>گزارش‌دهنده: {r.reporterName}</span>
+                  <span>•</span>
+                  <span>{faDate(r.created_at)}</span>
+                  {r.gameTitle && r.gameId && (
+                    <>
+                      <span>•</span>
+                      <Link to="/game/$gameId" params={{ gameId: r.gameId }} className="text-primary hover:underline">
+                        {r.gameTitle}
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted-foreground">دلیل گزارش: {r.reason?.trim() || "—"}</p>
+
+                <div className="rounded-lg bg-secondary/50 p-3">
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    نویسنده نظر: {r.authorName ?? "—"}
+                  </p>
+                  <p>{r.reviews?.text ?? "نظر حذف شده است"}</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {r.reviews && (
+                    <Button size="sm" variant="destructive" onClick={() => deleteReportedReview(r.reviews!.id, r.id)}>
+                      حذف نظر
+                    </Button>
+                  )}
+                  {r.status !== "resolved" && (
+                    <Button size="sm" variant="outline" onClick={() => setReportStatus(r.id, "resolved")}>
+                      رسیدگی شد
+                    </Button>
+                  )}
+                  {r.status !== "dismissed" && (
+                    <Button size="sm" variant="secondary" onClick={() => setReportStatus(r.id, "dismissed")}>
+                      نادیده گرفتن
+                    </Button>
+                  )}
+                  {r.status !== "open" && (
+                    <Button size="sm" variant="ghost" onClick={() => setReportStatus(r.id, "open")}>
+                      بازگشایی
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          {!(reports ?? []).filter((r) => reportFilter === "all" || r.status === reportFilter).length && (
+            <p className="text-sm text-muted-foreground">گزارشی در این وضعیت نیست.</p>
+          )}
         </TabsContent>
 
         <TabsContent value="settings" className="pt-4">
