@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 function NotFoundComponent() {
   return (
@@ -135,6 +136,7 @@ function RootComponent() {
           <p className="mt-1">مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن</p>
         </footer>
       </div>
+      <FeedbackWidget />
       <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );

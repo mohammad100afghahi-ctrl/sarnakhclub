@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          contact: string | null
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          contact?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       game_suggestions: {
         Row: {
           admin_note: string | null
