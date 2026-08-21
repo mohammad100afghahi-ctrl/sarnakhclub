@@ -132,10 +132,12 @@ function ProfilePage() {
       <Tabs defaultValue="wishlist" dir="rtl">
         <TabsList className="w-full">
           <TabsTrigger value="wishlist" className="flex-1">علاقه‌مندی‌ها</TabsTrigger>
+          <TabsTrigger value="played" className="flex-1">انجام‌شده‌ها</TabsTrigger>
           <TabsTrigger value="ratings" className="flex-1">امتیازها</TabsTrigger>
           <TabsTrigger value="reviews" className="flex-1">نظرها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="wishlist" className="pt-4">
           <Empty items={wishlist} text="هنوز بازی‌ای به علاقه‌مندی‌ها اضافه نکرده‌اید." />
