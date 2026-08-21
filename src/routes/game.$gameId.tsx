@@ -20,14 +20,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { GameCard, type GameCardData } from "@/components/GameCard";
+import { GameQuickEdit } from "@/components/admin/GameQuickEdit";
+
 import { faAge, faDate, faDurationRange, faNum, toFa } from "@/lib/fa";
 
 export const Route = createFileRoute("/game/$gameId")({
   head: () => ({
     meta: [
-      { title: "پرونده بازی | آرشیو پرونده" },
+      { title: "پرونده بازی | سرنخ" },
       { name: "description", content: "جزئیات کامل بازی: امتیاز، نظرات کاربران و پرونده‌های مشابه." },
-      { property: "og:title", content: "پرونده بازی | آرشیو پرونده" },
+      { property: "og:title", content: "پرونده بازی | سرنخ" },
       { property: "og:description", content: "امتیاز میانگین، نقد کاربران و اطلاعات کامل بازی‌های معمایی." },
     ],
   }),
@@ -319,7 +321,11 @@ function GamePage() {
 
         <div className="min-w-0 space-y-4">
           <div>
-            <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
+              {isAdmin && user && <GameQuickEdit gameId={gameId} userId={user.id} />}
+            </div>
+
             <p className="mt-1 text-sm text-muted-foreground">
               {g.creator_studio ? (
                 <Link

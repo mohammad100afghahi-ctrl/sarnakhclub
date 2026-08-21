@@ -8,9 +8,9 @@ export const Route = createFileRoute("/studio/$studio")({
     const name = decodeURIComponent(params.studio);
     return {
       meta: [
-        { title: `پرونده‌های ${name} | آرشیو پرونده` },
-        { name: "description", content: `فهرست کامل بازی‌ها و پرونده‌های معمایی محصول گروه ${name} در آرشیو پرونده.` },
-        { property: "og:title", content: `پرونده‌های ${name} | آرشیو پرونده` },
+        { title: `پرونده‌های ${name} | سرنخ` },
+        { name: "description", content: `فهرست کامل بازی‌ها و پرونده‌های معمایی محصول گروه ${name} در سرنخ.` },
+        { property: "og:title", content: `پرونده‌های ${name} | سرنخ` },
         { property: "og:description", content: `همه پرونده‌های ثبت‌شده از ${name}.` },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },

@@ -13,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/suggest")({
   head: () => ({
     meta: [
-      { title: "پیشنهاد پرونده جدید | آرشیو پرونده" },
+      { title: "پیشنهاد پرونده جدید | سرنخ" },
       { name: "description", content: "بازی معمایی یا کارآگاهی موردعلاقه‌تان را پیشنهاد دهید تا پس از بررسی ادمین به آرشیو اضافه شود." },
-      { property: "og:title", content: "پیشنهاد پرونده جدید | آرشیو پرونده" },
+      { property: "og:title", content: "پیشنهاد پرونده جدید | سرنخ" },
       { property: "og:description", content: "فرم ثبت پرونده جدید برای کاربران عضو." },
     ],
   }),

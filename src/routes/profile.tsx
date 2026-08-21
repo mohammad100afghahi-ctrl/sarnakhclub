@@ -9,9 +9,9 @@ import { toFa } from "@/lib/fa";
 export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
-      { title: "پروفایل من | آرشیو پرونده" },
-      { name: "description", content: "علاقه‌مندی‌ها، امتیازها، نظرها و پیشنهادهای ثبت‌شده شما در آرشیو پرونده." },
-      { property: "og:title", content: "پروفایل من | آرشیو پرونده" },
+      { title: "پروفایل من | سرنخ" },
+      { name: "description", content: "علاقه‌مندی‌ها، امتیازها، نظرها و پیشنهادهای ثبت‌شده شما در سرنخ." },
+      { property: "og:title", content: "پروفایل من | سرنخ" },
       { property: "og:description", content: "مدیریت علاقه‌مندی‌ها، امتیازها و پیشنهادهای شما." },
     ],
   }),

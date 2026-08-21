@@ -80,12 +80,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "آرشیو پرونده | مرجع بازی‌های معمایی و کارآگاهی" },
+      { title: "سرنخ | مرجع بازی‌های معمایی و کارآگاهی" },
       {
         name: "description",
         content: "مرجع فارسی معرفی، رتبه‌بندی و امتیازدهی به بازی‌های پرونده‌ای: معمایی، کارآگاهی و دیداکشن.",
       },
-      { property: "og:title", content: "آرشیو پرونده" },
+      { property: "og:title", content: "سرنخ" },
       { property: "og:description", content: "مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -132,7 +132,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-          <p className="font-bold text-gradient-gold">آرشیو پرونده</p>
+          <p className="font-bold text-gradient-gold">سرنخ</p>
           <p className="mt-1">مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن</p>
         </footer>
       </div>
