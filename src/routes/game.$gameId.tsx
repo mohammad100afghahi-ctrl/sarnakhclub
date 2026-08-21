@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2 } from "lucide-react";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -154,6 +154,28 @@ function GamePage() {
     qc.invalidateQueries();
   };
 
+  const { data: played } = useQuery({
+    queryKey: ["played", gameId, user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("played_games")
+        .select("game_id")
+        .eq("game_id", gameId)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
+  const togglePlayed = async () => {
+    if (!user) { needLogin(); return; }
+    if (played) await supabase.from("played_games").delete().eq("user_id", user.id).eq("game_id", gameId);
+    else await supabase.from("played_games").insert({ user_id: user.id, game_id: gameId });
+    qc.invalidateQueries({ queryKey: ["played"] });
+    toast.success(played ? "از لیست انجام‌شده‌ها حذف شد" : "به لیست انجام‌شده‌ها اضافه شد");
+  };
+
   const toggleWishlist = async () => {
     if (!user) { needLogin(); return; }
     if (inWishlist) await supabase.from("wishlist").delete().eq("user_id", user.id).eq("game_id", gameId);
@@ -161,6 +183,7 @@ function GamePage() {
     qc.invalidateQueries({ queryKey: ["wishlist"] });
     toast.success(inWishlist ? "از علاقه‌مندی‌ها حذف شد" : "به علاقه‌مندی‌ها اضافه شد");
   };
+
 
   const myReview = (reviews ?? []).find((r) => r.user_id === user?.id) ?? null;
 
@@ -298,10 +321,17 @@ function GamePage() {
               <p>{faNum(g.votes)} رای‌دهنده</p>
               <p>امتیاز وزنی: {faNum(Number(g.weighted_score), 1)}</p>
             </div>
-            <Button variant={inWishlist ? "secondary" : "outline"} className="mr-auto gap-2" onClick={toggleWishlist}>
-              <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
-              {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-            </Button>
+            <div className="mr-auto flex flex-wrap gap-2">
+              <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
+                <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
+                {played ? "انجام داده‌ام" : "انجامش داده‌ام"}
+              </Button>
+              <Button variant={inWishlist ? "secondary" : "outline"} className="gap-2" onClick={toggleWishlist}>
+                <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
+                {inWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+              </Button>
+            </div>
+
           </div>
 
           <div className="rounded-xl surface-case p-4">

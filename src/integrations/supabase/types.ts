@@ -171,6 +171,39 @@ export type Database = {
         }
         Relationships: []
       }
+      played_games: {
+        Row: {
+          created_at: string
+          game_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "played_games_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "game_rankings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "played_games_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

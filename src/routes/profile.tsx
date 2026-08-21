@@ -42,6 +42,21 @@ function ProfilePage() {
     },
   });
 
+  const { data: playedList } = useQuery({
+    queryKey: ["played-full", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("played_games")
+        .select("game_id, games(id,title,poster_url,release_year)")
+        .eq("user_id", user!.id);
+      return (data ?? []) as unknown as {
+        game_id: string;
+        games: { id: string; title: string; poster_url: string | null; release_year: number | null } | null;
+      }[];
+    },
+  });
+
   const { data: ratings } = useQuery({
     queryKey: ["my-ratings", user?.id],
     enabled: !!user,
@@ -117,10 +132,12 @@ function ProfilePage() {
       <Tabs defaultValue="wishlist" dir="rtl">
         <TabsList className="w-full">
           <TabsTrigger value="wishlist" className="flex-1">علاقه‌مندی‌ها</TabsTrigger>
+          <TabsTrigger value="played" className="flex-1">انجام‌شده‌ها</TabsTrigger>
           <TabsTrigger value="ratings" className="flex-1">امتیازها</TabsTrigger>
           <TabsTrigger value="reviews" className="flex-1">نظرها</TabsTrigger>
           <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="wishlist" className="pt-4">
           <Empty items={wishlist} text="هنوز بازی‌ای به علاقه‌مندی‌ها اضافه نکرده‌اید." />
@@ -139,6 +156,25 @@ function ProfilePage() {
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="played" className="pt-4">
+          <Empty items={playedList} text="هنوز پرونده‌ای را به‌عنوان انجام‌شده ثبت نکرده‌اید." />
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(playedList ?? []).map((p) =>
+              p.games ? (
+                <Link
+                  key={p.game_id}
+                  to="/game/$gameId"
+                  params={{ gameId: p.games.id }}
+                  className="rounded-xl surface-case p-4 text-sm hover:bg-accent"
+                >
+                  {p.games.title} {p.games.release_year ? `(${toFa(p.games.release_year)})` : ""}
+                </Link>
+              ) : null,
+            )}
+          </div>
+        </TabsContent>
+
 
         <TabsContent value="ratings" className="pt-4">
           <Empty items={ratings} text="هنوز به بازی‌ای امتیاز نداده‌اید." />
