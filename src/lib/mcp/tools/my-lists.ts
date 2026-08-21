@@ -16,12 +16,15 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     const userId = ctx.getUserId()!;
 
-    const table = list === "played" ? "played_games" : list === "wishlist" ? "wishlist" : "ratings";
-    const columns = list === "ratings" ? "game_id, score, created_at" : "game_id, created_at";
-    const { data, error } = await supabase.from(table).select(columns).eq("user_id", userId);
+    const { data, error } =
+      list === "ratings"
+        ? await supabase.from("ratings").select("game_id, score, created_at").eq("user_id", userId)
+        : list === "wishlist"
+          ? await supabase.from("wishlist").select("game_id, created_at").eq("user_id", userId)
+          : await supabase.from("played_games").select("game_id, created_at").eq("user_id", userId);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
 
-    const rows = (data ?? []) as Array<Record<string, unknown>>;
+    const rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
     const ids = rows.map((r) => r["game_id"] as string);
     const { data: games } = ids.length
       ? await supabase.from("games").select("id, title, creator_studio").in("id", ids)
