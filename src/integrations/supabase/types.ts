@@ -536,14 +536,6 @@ export type Database = {
       }
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_primary_admin: { Args: { _user_id: string }; Returns: boolean }
       primary_admin_id: { Args: never; Returns: string }
     }
     Enums: {
