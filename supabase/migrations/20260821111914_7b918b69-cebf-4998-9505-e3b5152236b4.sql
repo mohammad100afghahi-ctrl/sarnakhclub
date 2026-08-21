@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS reviews_user_game_uniq ON public.reviews (user_id, game_id);
