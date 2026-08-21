@@ -80,8 +80,7 @@ function Index() {
             هر بازی، یک <span className="text-gradient-gold">پرونده باز</span> است
           </h1>
           <p className="max-w-xl text-sm text-muted-foreground sm:text-base">
-            مرجع فارسی معرفی، نقد و رتبه‌بندی بازی‌های معمایی، کارآگاهی و دیداکشن — از مافیا و ۱۳ سرنخ تا Obra
-            Dinn و Ace Attorney.
+            مرجع فارسی معرفی، نقد و رتبه‌بندی بازی های معمایی.
           </p>
           <Link to="/ranking">
             <Button size="lg" className="gap-2 font-bold">
