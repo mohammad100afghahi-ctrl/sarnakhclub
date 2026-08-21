@@ -334,7 +334,7 @@ function GamePage() {
             <div className="mr-auto flex flex-wrap gap-2">
               <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
                 <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
-                {played ? "انجام داده‌ام" : "انجامش داده‌ام"}
+                {played ? "بازی شده" : "بازی شده"}
               </Button>
               <Button variant={inWishlist ? "secondary" : "outline"} className="gap-2" onClick={toggleWishlist}>
                 <Heart className={inWishlist ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
