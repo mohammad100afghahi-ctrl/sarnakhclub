@@ -11,23 +11,18 @@ function gatewayHeaders() {
   };
 }
 
-export async function firecrawlMap(url: string, limit: number): Promise<string[]> {
-  const res = await fetch(`${GATEWAY}/map`, {
+export async function firecrawlScrapeLinks(url: string): Promise<string[]> {
+  const res = await fetch(`${GATEWAY}/scrape`, {
     method: "POST",
     headers: gatewayHeaders(),
-    body: JSON.stringify({ url, limit, includeSubdomains: false }),
+    body: JSON.stringify({ url, formats: ["links"], onlyMainContent: true }),
   });
   const body = await res.text();
   if (!res.ok) throw new Error(`خطای کشف صفحات [${res.status}]: ${body.slice(0, 300)}`);
-  const json = JSON.parse(body) as {
-    links?: Array<string | { url?: string }>;
-    data?: { links?: Array<string | { url?: string }> };
-  };
-  const raw = json.links ?? json.data?.links ?? [];
-  return raw
-    .map((l) => (typeof l === "string" ? l : l.url))
-    .filter((l): l is string => typeof l === "string" && l.length > 0);
+  const json = JSON.parse(body) as { links?: string[]; data?: { links?: string[] } };
+  return (json.links ?? json.data?.links ?? []).filter((l) => typeof l === "string");
 }
+
 
 export async function firecrawlScrape(url: string): Promise<{ markdown: string; images: string[] }> {
   const res = await fetch(`${GATEWAY}/scrape`, {
