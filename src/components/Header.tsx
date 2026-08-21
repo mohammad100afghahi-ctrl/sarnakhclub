@@ -108,7 +108,7 @@ export function Header() {
             </nav>
           </div>
 
-          <div className="hidden min-w-0 md:block" />
+          <div className="hidden md:block" />
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {isAdmin && (
