@@ -319,7 +319,11 @@ function GamePage() {
 
         <div className="min-w-0 space-y-4">
           <div>
-            <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
+              {isAdmin && user && <GameQuickEdit gameId={gameId} userId={user.id} />}
+            </div>
+
             <p className="mt-1 text-sm text-muted-foreground">
               {g.creator_studio ? (
                 <Link
