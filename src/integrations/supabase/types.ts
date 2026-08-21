@@ -193,21 +193,18 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
-          is_banned: boolean
           username: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           id: string
-          is_banned?: boolean
           username: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           id?: string
-          is_banned?: boolean
           username?: string
         }
         Relationships: []
