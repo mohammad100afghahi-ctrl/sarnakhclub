@@ -347,16 +347,37 @@ function GamePage() {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "helpful")}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={`gap-1 ${myVotes?.[r.id] === "helpful" ? "text-primary" : ""}`}
+                  onClick={() => voteReview(r.id, "helpful")}
+                >
                   <ThumbsUp className="h-4 w-4" /> {faNum(r.helpful_count)}
                 </Button>
-                <Button size="sm" variant="ghost" className="gap-1" onClick={() => voteReview(r.id, "unhelpful")}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={`gap-1 ${myVotes?.[r.id] === "unhelpful" ? "text-destructive" : ""}`}
+                  onClick={() => voteReview(r.id, "unhelpful")}
+                >
                   <ThumbsDown className="h-4 w-4" /> {faNum(r.unhelpful_count)}
                 </Button>
                 <Button size="sm" variant="ghost" className="gap-1 text-muted-foreground" onClick={() => reportReview(r.id)}>
                   <Flag className="h-4 w-4" /> گزارش
                 </Button>
+                {(isAdmin || r.user_id === user?.id) && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1 text-destructive"
+                    onClick={() => deleteReview(r.id)}
+                  >
+                    <Trash2 className="h-4 w-4" /> حذف
+                  </Button>
+                )}
               </div>
+
             </article>
           );
         })}
