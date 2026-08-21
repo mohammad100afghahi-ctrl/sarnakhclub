@@ -309,15 +309,16 @@ function GamePage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 px-4 py-8">
-      <div className="grid gap-6 sm:grid-cols-[240px_minmax(0,1fr)]">
-        <div className="overflow-hidden rounded-xl surface-case">
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-6 sm:space-y-10 sm:py-8">
+      <div className="grid gap-5 sm:grid-cols-[240px_minmax(0,1fr)] sm:gap-6">
+        <div className="mx-auto w-40 overflow-hidden rounded-xl surface-case sm:mx-0 sm:w-auto">
           <div className="aspect-[3/4] bg-muted">
             {g.poster_url && (
               <img src={g.poster_url} alt={`پوستر ${g.title}`} className="h-full w-full object-cover" />
             )}
           </div>
         </div>
+
 
         <div className="min-w-0 space-y-4">
           <div>
