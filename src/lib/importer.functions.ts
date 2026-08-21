@@ -108,8 +108,9 @@ export const importCase = createServerFn({ method: "POST" })
     }
 
     const posterCandidates = [extracted.poster_url, ...images].filter((u): u is string => Boolean(u));
+    // تلاش برای آپلود تصویر؛ اگر سرور مبدأ اجازه دانلود نداد، همان آدرس اصلی ذخیره می‌شود
     const posterUrl = posterCandidates.length
-      ? await uploadPoster(posterCandidates[0]!, posterCandidates.slice(1))
+      ? (await uploadPoster(posterCandidates[0]!, posterCandidates.slice(1))) ?? posterCandidates[0]!
       : null;
 
 
