@@ -114,12 +114,11 @@ function RankingPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl surface-case">
-        <div className="hidden grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem_5rem] items-center gap-3 border-b border-border px-4 py-3 text-xs text-muted-foreground sm:grid">
+        <div className="hidden grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem] items-center gap-3 border-b border-border px-4 py-3 text-xs text-muted-foreground sm:grid">
           <span>رتبه</span>
-          <span>پوستر</span>
+          <span aria-hidden />
           <span>نام بازی</span>
           <span className="text-center">امتیاز وزنی</span>
-          <span className="text-center">امتیاز خام</span>
           <span className="text-center">تعداد رای</span>
         </div>
 
@@ -135,7 +134,7 @@ function RankingPage() {
                 key={r.id}
                 to="/game/$gameId"
                 params={{ gameId: r.id }}
-                className="grid grid-cols-[2rem_3rem_minmax(0,1fr)] items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-0 hover:bg-accent sm:grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem_5rem] sm:px-4"
+                className="grid grid-cols-[2rem_3rem_minmax(0,1fr)] items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-0 hover:bg-accent sm:grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem] sm:px-4"
               >
                 <span className="text-sm font-black text-primary">{toFa(i + 1)}</span>
                 <div className="h-16 w-12 overflow-hidden rounded-md bg-muted">
@@ -149,13 +148,12 @@ function RankingPage() {
                     {toFa(r.release_year ?? "")}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground sm:hidden">
-                    وزنی {faNum(Number(r.weighted_score), 1)} · خام {faNum(Number(r.raw_avg), 1)} · {faNum(r.votes)} رای
+                    وزنی {faNum(Number(r.weighted_score), 1)} · {faNum(r.votes)} رای
                   </p>
                 </div>
                 <span className="hidden text-center text-base font-black text-primary sm:block">
                   {faNum(Number(r.weighted_score), 1)}
                 </span>
-                <span className="hidden text-center text-sm sm:block">{faNum(Number(r.raw_avg), 1)}</span>
                 <span className="hidden text-center text-sm text-muted-foreground sm:block">{faNum(r.votes)}</span>
               </Link>
             ))}
