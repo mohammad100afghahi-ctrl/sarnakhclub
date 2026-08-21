@@ -241,6 +241,3 @@ export async function uploadPoster(imageUrl: string, fallbacks: string[] = []): 
   }
   return null;
 }
-
-  }
-}
