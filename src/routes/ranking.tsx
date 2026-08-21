@@ -117,7 +117,7 @@ function RankingPage() {
         <div className="hidden grid-cols-[3rem_4rem_minmax(0,1fr)_5rem_5rem] items-center gap-3 border-b border-border px-4 py-3 text-xs text-muted-foreground sm:grid">
           <span>رتبه</span>
           <span aria-hidden />
-          <span>نام بازی</span>
+          <span aria-hidden />
           <span className="text-center">امتیاز وزنی</span>
           <span className="text-center">تعداد رای</span>
         </div>
