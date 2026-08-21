@@ -13,7 +13,7 @@ type Suggestion = { id: string; title: string; creator_studio: string | null; re
 const navItems = [
   { to: "/", label: "خانه" },
   { to: "/ranking", label: "رتبه‌بندی" },
-  { to: "/suggest", label: "پیشنهاد بازی" },
+  { to: "/suggest", label: "پیشنهاد پرونده" },
 ] as const;
 
 export function Header() {
@@ -114,7 +114,7 @@ export function Header() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onFocus={() => results.length && setOpen(true)}
-            placeholder="جستجوی نام بازی، سازنده یا ژانر…"
+            placeholder="نام بازی، سازنده…"
             className="pr-9"
             aria-label="جستجو"
           />
@@ -132,7 +132,7 @@ export function Header() {
                 >
                   <span className="truncate">{r.title}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {r.creator_studio ?? ""} {r.release_year ? toFa(r.release_year) : ""}
+                    {r.creator_studio ?? ""}
                   </span>
                 </button>
               ))}
