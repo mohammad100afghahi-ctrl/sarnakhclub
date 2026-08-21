@@ -34,12 +34,8 @@ type Row = {
   weighted_score: number;
 };
 
-const ALL = "همه";
-
 function RankingPage() {
   const [tab, setTab] = useState("all");
-  const [year, setYear] = useState(ALL);
-  const [age, setAge] = useState(ALL);
 
   const { data, isLoading } = useQuery({
     queryKey: ["rankings"],
@@ -51,25 +47,13 @@ function RankingPage() {
     staleTime: 60_000,
   });
 
-  const years = useMemo(
-    () => Array.from(new Set((data ?? []).map((r) => r.release_year).filter(Boolean))).sort((a, b) => b! - a!),
-    [data],
-  );
-
   const rows = useMemo(() => {
-    let list = [...(data ?? [])];
-    if (year !== ALL) list = list.filter((r) => String(r.release_year) === year);
-    if (age !== ALL) list = list.filter((r) => r.age_rating === age);
-    if (tab === "year") list = list.filter((r) => r.release_year === new Date().getFullYear());
+    const list = [...(data ?? [])];
     if (tab === "votes") list.sort((a, b) => b.votes - a.votes);
     else list.sort((a, b) => Number(b.weighted_score) - Number(a.weighted_score));
-    return list;
-  }, [data, year, age, tab]);
+    return tab === "year" ? list.filter((r) => r.release_year === new Date().getFullYear()) : list;
+  }, [data, tab]);
 
-  const filters = [
-    { label: "سال", value: year, set: setYear, options: years.map((y) => String(y)) },
-    { label: "رده سنی", value: age, set: setAge, options: AGE_RATINGS as readonly string[] },
-  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
