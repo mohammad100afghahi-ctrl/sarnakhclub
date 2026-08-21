@@ -101,46 +101,6 @@ export type Database = {
         }
         Relationships: []
       }
-      game_tags: {
-        Row: {
-          created_by: string | null
-          game_id: string
-          tag_id: string
-        }
-        Insert: {
-          created_by?: string | null
-          game_id: string
-          tag_id: string
-        }
-        Update: {
-          created_by?: string | null
-          game_id?: string
-          tag_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "game_tags_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "game_rankings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "game_tags_game_id_fkey"
-            columns: ["game_id"]
-            isOneToOne: false
-            referencedRelation: "games"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "game_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       games: {
         Row: {
           age_rating: string | null
@@ -412,30 +372,6 @@ export type Database = {
         Update: {
           key?: string
           value?: number
-        }
-        Relationships: []
-      }
-      tags: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          name: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name?: string
-          status?: string
         }
         Relationships: []
       }
