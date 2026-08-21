@@ -120,7 +120,7 @@ function GamePage() {
   const needLogin = () => toast.error("برای این کار باید وارد حساب خود شوید");
 
   const rate = async (score: number) => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     const { error } = await supabase
       .from("ratings")
       .upsert({ user_id: user.id, game_id: gameId, score }, { onConflict: "user_id,game_id" });
@@ -133,7 +133,7 @@ function GamePage() {
   };
 
   const toggleWishlist = async () => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     if (inWishlist) await supabase.from("wishlist").delete().eq("user_id", user.id).eq("game_id", gameId);
     else await supabase.from("wishlist").insert({ user_id: user.id, game_id: gameId });
     qc.invalidateQueries({ queryKey: ["wishlist"] });
@@ -141,7 +141,7 @@ function GamePage() {
   };
 
   const submitReview = async () => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     const text = reviewText.trim();
     if (text.length < 3 || text.length > 2000) {
       toast.error("متن نظر باید بین ۳ تا ۲۰۰۰ کاراکتر باشد");
@@ -164,7 +164,7 @@ function GamePage() {
   };
 
   const voteReview = async (reviewId: string, type: "helpful" | "unhelpful") => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     await supabase
       .from("review_votes")
       .upsert({ review_id: reviewId, user_id: user.id, vote_type: type }, { onConflict: "review_id,user_id" });
@@ -172,13 +172,13 @@ function GamePage() {
   };
 
   const reportReview = async (reviewId: string) => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     await supabase.from("review_reports").insert({ review_id: reviewId, user_id: user.id, reason: "گزارش کاربر" });
     toast.success("گزارش شما ثبت شد");
   };
 
   const addTag = async () => {
-    if (!user) return needLogin();
+    if (!user) { needLogin(); return; }
     const name = newTag.trim();
     if (name.length < 2 || name.length > 30) {
       toast.error("برچسب باید بین ۲ تا ۳۰ کاراکتر باشد");
