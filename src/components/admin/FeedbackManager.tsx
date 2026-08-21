@@ -8,6 +8,7 @@ import { faDate } from "@/lib/fa";
 const KIND_LABEL: Record<string, string> = {
   bug: "باگ",
   suggestion: "پیشنهاد",
+  game_info: "اطلاعات نادرست پرونده",
   other: "سایر",
 };
 
