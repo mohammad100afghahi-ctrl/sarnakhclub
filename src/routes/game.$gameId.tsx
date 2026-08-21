@@ -58,6 +58,8 @@ function GamePage() {
   const [editing, setEditing] = useState(false);
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState("");
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [infoText, setInfoText] = useState("");
 
   const { data: game, isLoading } = useQuery({
     queryKey: ["game", gameId],
