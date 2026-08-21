@@ -77,19 +77,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "آرشیو پرونده | مرجع بازی‌های معمایی و کارآگاهی" },
+      {
+        name: "description",
+        content: "مرجع فارسی معرفی، رتبه‌بندی و امتیازدهی به بازی‌های پرونده‌ای: معمایی، کارآگاهی و دیداکشن.",
+      },
+      { property: "og:title", content: "آرشیو پرونده" },
+      { property: "og:description", content: "مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "preconnect", href: "https://cdn.jsdelivr.net" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
@@ -102,7 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="fa" dir="rtl">
       <head>
         <HeadContent />
       </head>
@@ -119,8 +122,19 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="flex min-h-screen flex-col bg-background text-foreground">
+        <Header />
+        <main className="flex-1">
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </main>
+        <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
+          <p className="font-bold text-gradient-gold">آرشیو پرونده</p>
+          <p className="mt-1">مرجع فارسی بازی‌های معمایی، کارآگاهی و دیداکشن</p>
+        </footer>
+      </div>
+      <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
 }
+
