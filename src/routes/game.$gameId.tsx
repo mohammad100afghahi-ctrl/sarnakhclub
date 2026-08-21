@@ -385,12 +385,12 @@ function GamePage() {
 
           <div className="rounded-xl surface-case p-3 sm:p-4">
             <p className="mb-2 text-sm font-bold">امتیاز شما {myRating ? `(${toFa(myRating)})` : ""}</p>
-            <div className="grid grid-cols-10 gap-1">
+            <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
               {Array.from({ length: 10 }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => rate(i + 1)}
-                  className={`aspect-square rounded-md border border-border text-xs font-bold transition-colors hover:bg-primary hover:text-primary-foreground sm:text-sm ${
+                  className={`h-9 rounded-md border border-border text-xs font-bold transition-colors hover:bg-primary hover:text-primary-foreground sm:text-sm ${
                     myRating && myRating >= i + 1 ? "bg-primary/20 text-primary" : "bg-secondary"
                   }`}
                 >
