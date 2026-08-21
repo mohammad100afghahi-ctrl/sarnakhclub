@@ -345,6 +345,17 @@ function GamePage() {
               <p>{faNum(g.votes)} رای‌دهنده</p>
               <p>امتیاز وزنی: {faNum(Number(g.weighted_score), 1)}</p>
             </div>
+            {rankInfo && (
+              <Link
+                to="/ranking"
+                className="rounded-lg border border-border px-3 py-2 text-xs transition-colors hover:bg-accent"
+              >
+                <span className="text-muted-foreground">رتبه فعلی: </span>
+                <span className="text-base font-black text-primary">{toFa(rankInfo.rank)}</span>
+                <span className="text-muted-foreground"> از {toFa(rankInfo.total)}</span>
+              </Link>
+            )}
+
             <div className="mr-auto flex flex-wrap gap-2">
               <Button variant={played ? "secondary" : "outline"} className="gap-2" onClick={togglePlayed}>
                 <CheckCircle2 className={played ? "h-4 w-4 fill-current text-primary" : "h-4 w-4"} />
