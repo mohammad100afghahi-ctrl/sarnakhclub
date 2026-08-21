@@ -138,9 +138,12 @@ export function Header() {
               </Link>
             )}
           </div>
-        </div>
 
-        <div className="relative mt-2 min-w-0 md:absolute md:inset-x-0 md:top-1/2 md:mx-auto md:mt-0 md:hidden" ref={boxRef}>
+        <div
+          className="relative col-span-3 row-start-2 mt-2 min-w-0 md:col-span-1 md:col-start-2 md:row-start-1 md:mt-0"
+          ref={boxRef}
+        >
+
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
