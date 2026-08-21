@@ -281,11 +281,11 @@ function GamePage() {
     title: string;
     description: string;
     creator_studio: string | null;
-    release_year: number | null;
     min_players: number | null;
     max_players: number | null;
     age_rating: string | null;
     duration_minutes: number | null;
+    duration_max_minutes: number | null;
     poster_url: string | null;
     raw_avg: number;
     votes: number;
@@ -307,7 +307,17 @@ function GamePage() {
           <div>
             <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {g.creator_studio ?? "نامشخص"} · {toFa(g.release_year ?? "")}
+              {g.creator_studio ? (
+                <Link
+                  to="/studio/$studio"
+                  params={{ studio: encodeURIComponent(g.creator_studio) }}
+                  className="text-primary hover:underline"
+                >
+                  {g.creator_studio}
+                </Link>
+              ) : (
+                "نامشخص"
+              )}
             </p>
           </div>
 
@@ -353,8 +363,8 @@ function GamePage() {
 
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <Info label="تعداد بازیکن" value={`${toFa(g.min_players ?? "?")} تا ${toFa(g.max_players ?? "?")}`} />
-            <Info label="رده سنی" value={g.age_rating ?? "—"} />
-            <Info label="مدت بازی" value={faDuration(g.duration_minutes)} />
+            <Info label="رده سنی" value={faAge(g.age_rating)} />
+            <Info label="مدت بازی" value={faDurationRange(g.duration_minutes, g.duration_max_minutes)} />
           </div>
 
           <p className="leading-8 text-muted-foreground">{g.description}</p>

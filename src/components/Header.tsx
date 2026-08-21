@@ -6,9 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { toFa } from "@/lib/fa";
 
-type Suggestion = { id: string; title: string; creator_studio: string | null; release_year: number | null };
+type Suggestion = { id: string; title: string; creator_studio: string | null };
 
 const navItems = [
   { to: "/", label: "خانه" },
@@ -34,7 +33,7 @@ export function Header() {
       const term = `%${q.trim()}%`;
       const { data } = await supabase
         .from("games")
-        .select("id,title,creator_studio,release_year")
+        .select("id,title,creator_studio")
         .or(`title.ilike.${term},creator_studio.ilike.${term}`)
         .eq("status", "active")
         .limit(6);
