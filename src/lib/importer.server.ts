@@ -214,19 +214,30 @@ export async function uploadPoster(imageUrl: string, fallbacks: string[] = []): 
   for (const candidate of candidates) {
     try {
       const res = await fetch(candidate, {
+        redirect: "follow",
+        signal: AbortSignal.timeout(20000),
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
           Accept: "image/avif,image/webp,image/*,*/*;q=0.8",
-          Referer: new URL(candidate).origin,
+          "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.8",
+          Referer: new URL(candidate).origin + "/",
         },
       });
       if (!res.ok) continue;
-      const contentType = (res.headers.get("content-type") ?? "image/jpeg").split(";")[0]!.trim();
-      if (!contentType.startsWith("image/")) continue;
       const bytes = new Uint8Array(await res.arrayBuffer());
-      if (bytes.byteLength < 2048 || bytes.byteLength > 8 * 1024 * 1024) continue;
-      const ext = contentType.split("/")[1] ?? "jpg";
+      if (bytes.byteLength < 1024 || bytes.byteLength > 10 * 1024 * 1024) continue;
+      let contentType = (res.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
+      if (!contentType.startsWith("image/")) {
+        // بعضی سرورها نوع محتوا را درست اعلام نمی‌کنند؛ از امضای فایل تشخیص می‌دهیم
+        const sig = bytes.subarray(0, 4);
+        if (sig[0] === 0xff && sig[1] === 0xd8) contentType = "image/jpeg";
+        else if (sig[0] === 0x89 && sig[1] === 0x50) contentType = "image/png";
+        else if (sig[0] === 0x47 && sig[1] === 0x49) contentType = "image/gif";
+        else if (sig[0] === 0x52 && sig[1] === 0x49) contentType = "image/webp";
+        else continue;
+      }
+      const ext = (contentType.split("/")[1] ?? "jpg").replace("jpeg", "jpg");
       const path = `ai-import/${crypto.randomUUID()}.${ext}`;
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { error } = await supabaseAdmin.storage.from("posters").upload(path, bytes, { contentType });
