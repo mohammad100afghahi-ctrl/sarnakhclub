@@ -1,19 +1,11 @@
-import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { discoverCases, importCase } from "@/lib/importer.functions";
+import { importerStore, type ImporterRow } from "@/lib/importerStore";
 import { toFa } from "@/lib/fa";
 
-type Row = {
-  url: string;
-  selected: boolean;
-  state: "idle" | "running" | "imported" | "duplicate" | "skipped" | "error";
-  note: string;
-};
-
-const stateLabel: Record<Row["state"], string> = {
+const stateLabel: Record<ImporterRow["state"], string> = {
   idle: "در انتظار",
   running: "در حال بررسی…",
   imported: "افزوده شد",
@@ -23,56 +15,20 @@ const stateLabel: Record<Row["state"], string> = {
 };
 
 export function AiImporter() {
-  const discover = useServerFn(discoverCases);
-  const runImport = useServerFn(importCase);
-
-  const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [rows, setRows] = useState<Row[]>([]);
+  const snapshot = useSyncExternalStore(
+    importerStore.subscribe,
+    importerStore.getSnapshot,
+    importerStore.getSnapshot,
+  );
+  const { url, loading, running, rows } = snapshot;
 
   const doneCount = rows.filter((r) => r.state === "imported").length;
 
   const handleDiscover = async () => {
-    setLoading(true);
-    try {
-      const res = await discover({ data: { url: url.trim(), limit: 60 } });
-      setRows(res.links.map((l) => ({ url: l, selected: true, state: "idle", note: "" })));
-      if (res.links.length === 0) toast.error("صفحه‌ای پیدا نشد.");
-      else toast.success(`${toFa(res.links.length)} صفحه پیدا شد.`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "خطا در کشف صفحات");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRun = async () => {
-    setRunning(true);
-    const targets = rows.filter((r) => r.selected && r.state === "idle");
-    for (const target of targets) {
-      setRows((prev) => prev.map((r) => (r.url === target.url ? { ...r, state: "running" } : r)));
-      try {
-        const res = await runImport({ data: { url: target.url } });
-        setRows((prev) =>
-          prev.map((r) =>
-            r.url === target.url
-              ? { ...r, state: res.status, note: res.title ?? res.reason ?? "" }
-              : r,
-          ),
-        );
-      } catch (e) {
-        setRows((prev) =>
-          prev.map((r) =>
-            r.url === target.url
-              ? { ...r, state: "error", note: e instanceof Error ? e.message : "خطا" }
-              : r,
-          ),
-        );
-      }
-    }
-    setRunning(false);
-    toast.success("استخراج تمام شد. نتایج در تب «پیشنهادها» است.");
+    const res = await importerStore.discover();
+    if (res.error) toast.error(res.error);
+    else if (res.count === 0) toast.error("صفحه‌ای پیدا نشد.");
+    else toast.success(`${toFa(res.count)} صفحه پیدا شد.`);
   };
 
   return (
@@ -80,13 +36,14 @@ export function AiImporter() {
       <div className="rounded-lg border border-border/60 bg-card/40 p-3 text-sm text-muted-foreground">
         آدرس صفحه دسته‌بندی یک فروشگاه را وارد کنید. ابتدا صفحات محصول کشف می‌شوند، سپس هوش مصنوعی اطلاعات هر
         پرونده را به فارسی استخراج می‌کند و همراه پوستر به «پیشنهادها» اضافه می‌شود تا شما تأیید کنید.
+        {" "}استخراج در پس‌زمینه ادامه پیدا می‌کند؛ می‌توانید بین تب‌ها جابه‌جا شوید.
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           dir="ltr"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => importerStore.setUrl(e.target.value)}
           placeholder="https://example.com/products/category/..."
         />
         <Button onClick={handleDiscover} disabled={loading || running || !url.trim()}>
@@ -97,14 +54,14 @@ export function AiImporter() {
       {rows.length > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={handleRun} disabled={running}>
+            <Button onClick={() => void importerStore.run()} disabled={running}>
               {running ? "در حال استخراج…" : "شروع استخراج"}
             </Button>
             <Button
               variant="secondary"
               size="sm"
               disabled={running}
-              onClick={() => setRows((prev) => prev.map((r) => ({ ...r, selected: true })))}
+              onClick={() => importerStore.setRows((prev) => prev.map((r) => ({ ...r, selected: true })))}
             >
               انتخاب همه
             </Button>
@@ -112,9 +69,12 @@ export function AiImporter() {
               variant="secondary"
               size="sm"
               disabled={running}
-              onClick={() => setRows((prev) => prev.map((r) => ({ ...r, selected: false })))}
+              onClick={() => importerStore.setRows((prev) => prev.map((r) => ({ ...r, selected: false })))}
             >
               لغو انتخاب
+            </Button>
+            <Button variant="ghost" size="sm" disabled={running} onClick={() => importerStore.reset()}>
+              پاک کردن فهرست
             </Button>
             <span className="text-xs text-muted-foreground">
               {toFa(doneCount)} از {toFa(rows.length)} افزوده شد
@@ -130,7 +90,7 @@ export function AiImporter() {
                   checked={r.selected}
                   disabled={running || r.state !== "idle"}
                   onChange={(e) =>
-                    setRows((prev) =>
+                    importerStore.setRows((prev) =>
                       prev.map((x) => (x.url === r.url ? { ...x, selected: e.target.checked } : x)),
                     )
                   }
