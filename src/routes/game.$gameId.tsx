@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2, CheckCircle2 } from "lucide-react";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2, CheckCircle2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
