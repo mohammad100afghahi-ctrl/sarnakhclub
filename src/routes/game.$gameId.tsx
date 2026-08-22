@@ -223,6 +223,18 @@ function GamePage() {
     qc.invalidateQueries();
   };
 
+  const removeRating = async () => {
+    if (!user) { needLogin(); return; }
+    const { error } = await supabase.from("ratings").delete().eq("user_id", user.id).eq("game_id", gameId);
+    if (error) {
+      toast.error("حذف امتیاز ناموفق بود");
+      return;
+    }
+    toast.success("امتیاز شما حذف شد");
+    qc.invalidateQueries();
+  };
+
+
   const { data: played } = useQuery({
     queryKey: ["played", gameId, user?.id],
     enabled: !!user,
