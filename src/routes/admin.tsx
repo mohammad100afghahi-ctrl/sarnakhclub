@@ -260,17 +260,18 @@ function AdminPage() {
       <h1 className="text-2xl font-black">پنل مدیریت</h1>
 
       <Tabs value={tab} onValueChange={setTab} dir="rtl">
-        <TabsList className="flex w-full flex-wrap gap-1 h-auto">
-          <TabsTrigger value="games" className="flex-1">پرونده‌ها</TabsTrigger>
-          <TabsTrigger value="suggestions" className="flex-1">پیشنهادها</TabsTrigger>
-          <TabsTrigger value="importer" className="flex-1">استخراج هوشمند</TabsTrigger>
-          <TabsTrigger value="reports" className="flex-1">گزارش‌ها</TabsTrigger>
-          <TabsTrigger value="feedback" className="flex-1">بازخوردها</TabsTrigger>
-          <TabsTrigger value="settings" className="flex-1">تنظیمات</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 gap-1 h-auto p-1 sm:flex sm:flex-wrap">
+          <TabsTrigger value="games" className="w-full text-xs sm:flex-1 sm:text-sm">پرونده‌ها</TabsTrigger>
+          <TabsTrigger value="suggestions" className="w-full text-xs sm:flex-1 sm:text-sm">پیشنهادها</TabsTrigger>
+          <TabsTrigger value="importer" className="w-full text-xs sm:flex-1 sm:text-sm">استخراج هوشمند</TabsTrigger>
+          <TabsTrigger value="reports" className="w-full text-xs sm:flex-1 sm:text-sm">گزارش‌ها</TabsTrigger>
+          <TabsTrigger value="feedback" className="w-full text-xs sm:flex-1 sm:text-sm">بازخوردها</TabsTrigger>
+          <TabsTrigger value="settings" className="w-full text-xs sm:flex-1 sm:text-sm">تنظیمات</TabsTrigger>
           {isPrimaryAdmin && (
-            <TabsTrigger value="admins" className="flex-1">مدیران</TabsTrigger>
+            <TabsTrigger value="admins" className="w-full text-xs sm:flex-1 sm:text-sm">مدیران</TabsTrigger>
           )}
         </TabsList>
+
 
         {isPrimaryAdmin && (
           <TabsContent value="admins" className="pt-4">
