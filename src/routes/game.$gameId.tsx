@@ -474,7 +474,17 @@ function GamePage() {
           </div>
 
           <div className="rounded-xl surface-case p-3 sm:p-4">
-            <p className="mb-2 text-sm font-bold">امتیاز شما {myRating ? `(${toFa(myRating)})` : ""}</p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-sm font-bold">امتیاز شما {myRating ? `(${toFa(myRating)})` : ""}</p>
+              {myRating ? (
+                <button
+                  onClick={removeRating}
+                  className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  حذف امتیاز
+                </button>
+              ) : null}
+            </div>
             <div className="grid grid-cols-5 gap-1.5 sm:grid-cols-10">
               {Array.from({ length: 10 }).map((_, i) => (
                 <button
@@ -489,6 +499,7 @@ function GamePage() {
               ))}
             </div>
           </div>
+
 
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
             <Info label="تعداد بازیکن" value={`${toFa(g.min_players ?? "?")} تا ${toFa(g.max_players ?? "?")}`} />
