@@ -207,6 +207,9 @@ export function GameQuickEdit({ gameId, userId }: { gameId: string; userId: stri
                     <div className="flex items-center gap-3">
                       <img src={draft.poster_url} alt="پیش‌نمایش پوستر" className="h-20 w-16 rounded-md object-cover" />
                       <Button size="sm" variant="secondary" onClick={() => set("poster_url", "")}>حذف تصویر</Button>
+                      <a href={draft.poster_url} download target="_blank" rel="noreferrer">
+                        <Button size="sm" variant="secondary">دانلود تصویر</Button>
+                      </a>
                     </div>
                   )}
                 </div>
