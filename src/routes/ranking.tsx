@@ -48,8 +48,14 @@ function RankingPage() {
 
   const rows = useMemo(() => {
     const list = [...(data ?? [])];
-    if (tab === "votes") list.sort((a, b) => b.votes - a.votes);
-    else list.sort((a, b) => Number(b.weighted_score) - Number(a.weighted_score));
+    if (tab === "votes") list.sort((a, b) => b.votes - a.votes || Number(b.weighted_score) - Number(a.weighted_score));
+    else
+      list.sort(
+        (a, b) =>
+          Number(b.weighted_score) - Number(a.weighted_score) ||
+          b.votes - a.votes ||
+          Number(b.raw_avg) - Number(a.raw_avg),
+      );
     return list;
   }, [data, tab]);
 

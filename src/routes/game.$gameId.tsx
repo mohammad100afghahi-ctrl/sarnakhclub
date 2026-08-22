@@ -124,9 +124,14 @@ function GamePage() {
   const { data: rankInfo } = useQuery({
     queryKey: ["game-rank", gameId],
     queryFn: async () => {
-      const { data } = await supabase.from("game_rankings").select("id, weighted_score");
-      const list = [...((data ?? []) as unknown as { id: string; weighted_score: number }[])].sort(
-        (a, b) => Number(b.weighted_score) - Number(a.weighted_score),
+      const { data } = await supabase.from("game_rankings").select("id, weighted_score, votes, raw_avg");
+      const list = [
+        ...((data ?? []) as unknown as { id: string; weighted_score: number; votes: number; raw_avg: number }[]),
+      ].sort(
+        (a, b) =>
+          Number(b.weighted_score) - Number(a.weighted_score) ||
+          Number(b.votes) - Number(a.votes) ||
+          Number(b.raw_avg) - Number(a.raw_avg),
       );
       const idx = list.findIndex((r) => r.id === gameId);
       return idx === -1 ? null : { rank: idx + 1, total: list.length };
