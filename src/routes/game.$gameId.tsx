@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2, CheckCircle2 } from "lucide-react";
+import { Heart, Star, ThumbsDown, ThumbsUp, Flag, EyeOff, Trash2, CheckCircle2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -393,7 +393,28 @@ function GamePage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-black sm:text-3xl">{g.title}</h1>
-              {isAdmin && user && <GameQuickEdit gameId={gameId} userId={user.id} />}
+              {isAdmin && user && (
+                <div className="flex items-center gap-2">
+                  <GameQuickEdit gameId={gameId} userId={user.id} />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-2"
+                    title="جستجوی این پرونده در وب"
+                    onClick={() => {
+                      const q = `پرونده معمایی ${g.title}`;
+                      window.open(
+                        `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+                        "_blank",
+                        "noopener,noreferrer",
+                      );
+                    }}
+                  >
+                    <Search className="h-4 w-4" />
+                    جستجوی پرونده
+                  </Button>
+                </div>
+              )}
             </div>
 
             <p className="mt-1 text-sm text-muted-foreground">
