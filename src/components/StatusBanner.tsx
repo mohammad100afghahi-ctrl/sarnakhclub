@@ -26,7 +26,7 @@ export function StatusBanner() {
   };
 
   return (
-    <div className="sticky top-0 z-[60] w-full border-b border-amber-500/40 bg-amber-500/15 text-foreground backdrop-blur">
+    <div className="w-full border-b border-amber-500/40 bg-amber-500/15 text-foreground">
       <div className="mx-auto flex max-w-6xl items-start gap-2 px-3 py-2 sm:px-4">
         <p className="flex-1 text-xs leading-relaxed sm:text-sm">
           <span className="font-extrabold text-amber-600 dark:text-amber-400">
